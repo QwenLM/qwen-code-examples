@@ -12,14 +12,25 @@ The project includes examples for:
 
 ```text
 .
-├── sdk/                # SDK usage examples and integration patterns
-├── skills/             # Custom skills for various tasks
-│   ├── image-generate/ # AI image generation using DashScope
-│   └── youtube-transcript-extractor/ # Extracting transcripts from YouTube
-├── vibe/               # Marketing materials and brochures for Qwen Code
-│   └── brochure/       # Introduction brochures in multiple languages
+├── apps/               # Production-ready demo 
+├── sdk/                # SDK usage examples  
+├── vibe/               # Marketing materials 
 └── README.md
 ```
+
+## Demo Apps
+
+Production-ready applications built on Qwen Code SDK, targeting different professional personas:
+
+| App | Target User | Description |
+|-----|-------------|-------------|
+| **ProtoFlow** | Product Managers | bolt.new-style rapid prototyping — one sentence to functional prototype |
+| **DesignPrint** | Designers | lovart-inspired print design tool — A5 brochures, banners, posters |
+| **CoWork** | Office Workers | Daily task assistant — emails, notes, reports |
+| **NoteGenius** | Content Creators | NotebookLM-style workspace — write articles with AI-generated illustrations |
+| **PromoStudio** | Video Creators | Promotional video maker — powered by Remotion and Wanx |
+
+See [apps/README.md](apps/README.md) for detailed documentation.
 
 ## Featured Skills
 
