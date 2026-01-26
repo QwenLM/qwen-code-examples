@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
         cwd: workspaceDir,
         // 🔥 关键：配置工具权限回调
         canUseTool: async (toolName, input) => {
-          console.log('[API /api/chat] Tool request:', toolName, input);
+          console.log('[API /api/chat] Tool request:', toolName, JSON.stringify(input).substring(0, 200));
           
-          // 允许所有文件操作工具
+          // 允许所有文件操作工具（包括各种可能的命名方式）
           const allowedTools = [
             'write_file',      // SDK 实际使用的工具名
             'create_file',
@@ -119,20 +119,44 @@ export async function POST(request: NextRequest) {
             'shell',
             'search_file',
             'file_grep',
-            'codebase_search'
+            'codebase_search',
+            // 添加更多可能的工具名称
+            'writefile',
+            'createfile',
+            'editfile',
+            'filereplace',
+            'readfile',
           ];
           
-          if (allowedTools.includes(toolName.toLowerCase())) {
-            // 🔥 关键：对于文件操作工具，确保路径是相对于工作目录的
-            if (toolName.toLowerCase() === 'write_file' && input && typeof input === 'object') {
-              const updatedInput = { ...input };
-              // 如果路径是绝对路径，转换为相对路径
-              if (updatedInput.path && typeof updatedInput.path === 'string') {
-                if (updatedInput.path.startsWith('/')) {
-                  updatedInput.path = updatedInput.path.substring(1);
+          const toolNameLower = toolName.toLowerCase().replace(/[_-]/g, '');
+          const isAllowed = allowedTools.some(t => t.toLowerCase().replace(/[_-]/g, '') === toolNameLower);
+          
+          if (isAllowed) {
+            console.log('[API /api/chat] Tool allowed:', toolName);
+            
+            // 🔥 关键：对于所有文件操作工具，确保路径是相对于工作目录的
+            if (input && typeof input === 'object') {
+              const updatedInput = { ...input } as Record<string, any>;
+              
+              // 处理各种可能的路径字段名
+              const pathFields = ['path', 'file_path', 'filePath', 'relative_workspace_path'];
+              for (const field of pathFields) {
+                const fieldValue = updatedInput[field];
+                if (fieldValue && typeof fieldValue === 'string') {
+                  let newPath = fieldValue;
+                  // 如果路径是绝对路径，转换为相对路径
+                  if (newPath.startsWith('/')) {
+                    newPath = newPath.substring(1);
+                  }
+                  // 如果路径包含工作目录，移除它
+                  if (newPath.includes(workspaceDir)) {
+                    newPath = newPath.replace(workspaceDir, '').replace(/^\//, '');
+                  }
+                  updatedInput[field] = newPath;
+                  console.log(`[API /api/chat] Updated ${field}:`, newPath);
                 }
-                console.log('[API /api/chat] Updated file path:', updatedInput.path);
               }
+              
               return {
                 behavior: 'allow',
                 updatedInput,
