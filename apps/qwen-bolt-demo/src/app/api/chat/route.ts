@@ -84,12 +84,25 @@ export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
     const fullPrompt = buildPrompt(history || [], message);
 
+    console.log('[API /api/chat] Full prompt:', fullPrompt.substring(0, 200) + '...');
+    console.log('[API /api/chat] Creating query with options:', {
+      pathToQwenExecutable: 'qwen',
+      includePartialMessages: true,
+      debug: true,
+      logLevel: 'debug',
+      authType: 'qwen-oauth',
+      cwd: workspaceDir,
+    });
+
     const q = query({
       prompt: createPromptStream(sessionId, fullPrompt),
       options: {
         pathToQwenExecutable: 'qwen',
         includePartialMessages: true,
-        debug: false,
+        debug: true,  // 🔥 开启 debug 模式
+        logLevel: 'debug',  // 🔥 设置日志级别为 debug
+        // 🔥 关键修复：使用 qwen-oauth 认证（免费且推荐）
+        authType: 'qwen-oauth',
         // 🔥 关键：设置工作目录
         cwd: workspaceDir,
         // 🔥 关键：配置工具权限回调
@@ -141,11 +154,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log('[API /api/chat] Query object created, waiting for initialization...');
+
     const stream = new ReadableStream({
       async start(controller) {
         let hasError = false;
         try {
+          console.log('[API /api/chat] Waiting for q.initialized...');
           await q.initialized;
+          console.log('[API /api/chat] Query initialized successfully!');
           
           // 发送会话 ID 给前端
           const sessionInfo = JSON.stringify({
@@ -156,8 +173,12 @@ export async function POST(request: NextRequest) {
           controller.enqueue(encoder.encode(`data: ${sessionInfo}\n\n`));
           
           // 🔥 关键修复：不要在遇到 result 时 break，让 SDK 完整处理所有消息
+          console.log('[API /api/chat] Starting to iterate over messages...');
+          let messageCount = 0;
           for await (const msg of q as AsyncIterable<SDKMessage>) {
             try {
+              messageCount++;
+              console.log(`[API /api/chat] Received message #${messageCount}, type:`, (msg as any).type);
               const jsonLine = JSON.stringify(msg);
               controller.enqueue(encoder.encode(`data: ${jsonLine}\n\n`));
               
@@ -196,6 +217,7 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           hasError = true;
           console.error('[API /api/chat] Error streaming query:', error);
+          console.error('[API /api/chat] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
           
           try {
             const errorLine = JSON.stringify({

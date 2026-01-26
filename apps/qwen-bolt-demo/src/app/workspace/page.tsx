@@ -10,9 +10,6 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import CodeRenderer from '@/components/CodeRenderer';
-import Container, { ContainerRef } from '@/components/Container';
-import Terminal from '@/components/Terminal';
-import LogViewer from '@/components/LogViewer';
 
 interface Message {
   id: string;
@@ -40,19 +37,66 @@ function WorkspaceContent() {
   const [activeFile, setActiveFile] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [logs, setLogs] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'logs' | 'terminal'>('logs');
-  const [devServer, setDevServer] = useState<{ port: number; framework: string; proxyUrl: string } | null>(null);
+  const [devServer, setDevServer] = useState<{ port: number; framework: string; url: string } | null>(null);
+  const [isStartingServer, setIsStartingServer] = useState(false);
+  const [serverError, setServerError] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const containerRef = useRef<ContainerRef>(null);
 
-  // 处理开发服务器检测
-  const handleDevServerDetected = (info: { port: number; framework: string; proxyUrl: string }) => {
-    console.log('[Workspace] Dev server detected:', info);
-    setDevServer(info);
-    // 自动切换预览 URL 到代理地址
-    setPreviewUrl(`${info.proxyUrl}&t=${Date.now()}`);
+  // 启动开发服务器
+  const startDevServer = async () => {
+    if (!sessionId || isStartingServer) return;
+
+    setIsStartingServer(true);
+    setServerError('');
+
+    try {
+      console.log('[Workspace] Starting dev server for session:', sessionId);
+      
+      // 设置超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2分钟超时
+
+      const response = await fetch('/api/dev-server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+      console.log('[Workspace] Dev server response:', data);
+
+      if (data.success) {
+        if (data.type === 'static') {
+          // 静态 HTML 项目，直接使用预览 API
+          setPreviewUrl(`/api/preview?sessionId=${sessionId}&t=${Date.now()}`);
+        } else {
+          // 动态项目，使用开发服务器
+          setDevServer({
+            port: data.port,
+            framework: data.framework,
+            url: data.url,
+          });
+          // 设置预览 URL 为开发服务器地址
+          setPreviewUrl(`${data.url}?t=${Date.now()}`);
+        }
+        setServerError(''); // 清除错误
+      } else {
+        setServerError(data.error || 'Failed to start dev server');
+      }
+    } catch (error: any) {
+      console.error('[Workspace] Error starting dev server:', error);
+      if (error.name === 'AbortError') {
+        setServerError('Server start timeout (2 minutes). The project may be too large or have dependency issues.');
+      } else {
+        setServerError(error instanceof Error ? error.message : 'Failed to start dev server');
+      }
+    } finally {
+      setIsStartingServer(false);
+    }
   };
 
   const scrollToBottom = () => {
@@ -130,10 +174,10 @@ function WorkspaceContent() {
     }
   };
 
-  // 更新预览
-  const updatePreview = (sid: string) => {
-    setPreviewUrl(`/api/preview?sessionId=${sid}&t=${Date.now()}`);
-  };
+  // 更新预览 - 已移除自动预览逻辑，改为手动点击按钮启动
+  // const updatePreview = (sid: string) => {
+  //   setPreviewUrl(`/api/preview?sessionId=${sid}&t=${Date.now()}`);
+  // };
 
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || input.trim();
@@ -196,23 +240,25 @@ function WorkspaceContent() {
                   // 处理文件更新通知
                   if (parsed.type === 'file_updated') {
                     console.log('[Workspace] File updated:', parsed.tool, parsed.input);
-                    // 立即刷新文件和预览
+                    // 立即刷新文件（不自动预览）
                     if (currentSessionId) {
                       console.log('[Workspace] Triggering file reload for session:', currentSessionId);
                       loadAllFiles(currentSessionId);
-                      updatePreview(currentSessionId);
+                      // 移除自动预览，改为用户手动点击按钮
+                      // updatePreview(currentSessionId);
                     }
                   }
 
                   if (parsed.type === 'result') {
                     hasReceivedResult = true;
                     console.log('[Workspace] Received result, final refresh');
-                    // 最终刷新文件和预览
+                    // 最终刷新文件（不自动预览）
                     if (currentSessionId) {
                       // 延迟一下确保文件写入完成
                       setTimeout(() => {
                         loadAllFiles(currentSessionId);
-                        updatePreview(currentSessionId);
+                        // 移除自动预览，改为用户手动点击按钮
+                        // updatePreview(currentSessionId);
                       }, 1000);
                     }
                     break;
@@ -278,6 +324,16 @@ function WorkspaceContent() {
     console.log('Code changed:', filename, code);
   };
 
+  // 调试日志
+  console.log('[Workspace Debug]', {
+    sessionId,
+    filesCount: Object.keys(files).length,
+    previewUrl,
+    devServer,
+    isStartingServer,
+    serverError,
+  });
+
   return (
     <div className="flex h-screen bg-black text-white">
       {/* 左侧：聊天区域 */}
@@ -309,7 +365,7 @@ function WorkspaceContent() {
                     : 'bg-gray-800 text-gray-100'
                 }`}
               >
-                <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                <div className="text-sm whitespace-pre-wrap break-words">{msg.content}</div>
               </div>
             </div>
           ))}
@@ -317,7 +373,7 @@ function WorkspaceContent() {
           {currentResponse && (
             <div className="flex justify-start">
               <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-gray-800">
-                <div className="text-sm whitespace-pre-wrap text-gray-100">
+                <div className="text-sm whitespace-pre-wrap break-words text-gray-100">
                   {currentResponse}
                 </div>
                 <div className="flex items-center mt-2 text-blue-400">
@@ -354,62 +410,16 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      {/* 中间：代码编辑器 + 终端/日志 */}
+      {/* 中间：代码编辑器 */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {Object.keys(files).length > 0 ? (
-          <Container
-            ref={containerRef}
-            defaultSplit={70}
-            top={
-              <CodeRenderer
-                files={files}
-                readOnly={true}
-                isComplete={!isLoading}
-                onCodeChange={handleCodeChange}
-                activeFile={activeFile}
-                onSelectFile={handleSelectFile}
-              />
-            }
-            bottom={
-              <div className="flex h-full flex-col bg-gray-900">
-                {/* Tab Bar */}
-                <div className="flex items-center border-b border-gray-700 bg-gray-800 px-4 py-2">
-                  <button
-                    onClick={() => setActiveTab('logs')}
-                    className={`px-4 py-1.5 text-sm font-medium rounded-t transition-colors ${
-                      activeTab === 'logs'
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Logs
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('terminal')}
-                    className={`ml-2 px-4 py-1.5 text-sm font-medium rounded-t transition-colors ${
-                      activeTab === 'terminal'
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Terminal
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-hidden">
-                  {activeTab === 'logs' ? (
-                    <LogViewer logs={logs} loading={isLoading} />
-                  ) : (
-                    <Terminal
-                      containerId={sessionId || 'default'}
-                      socketUrl={typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}
-                      onDevServerDetected={handleDevServerDetected}
-                    />
-                  )}
-                </div>
-              </div>
-            }
+          <CodeRenderer
+            files={files}
+            readOnly={true}
+            isComplete={!isLoading}
+            onCodeChange={handleCodeChange}
+            activeFile={activeFile}
+            onSelectFile={handleSelectFile}
           />
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900 text-gray-500">
@@ -434,27 +444,47 @@ function WorkspaceContent() {
             )}
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => previewUrl && setPreviewUrl(`${previewUrl.split('&t=')[0]}&t=${Date.now()}`)}
-              className="p-1.5 hover:bg-gray-700 rounded transition-colors"
-              title="Refresh Preview"
-            >
-              <RotateCcw className="w-4 h-4 text-gray-400" />
-            </button>
-            <button
-              onClick={() => {
-                if (previewUrl) {
-                  window.open(previewUrl, '_blank');
-                }
-              }}
-              className="p-1.5 hover:bg-gray-700 rounded transition-colors"
-              title="Open in New Tab"
-            >
-              <Maximize2 className="w-4 h-4 text-gray-400" />
-            </button>
+            {!previewUrl && sessionId && Object.keys(files).length > 0 && (
+              <button
+                onClick={startDevServer}
+                disabled={isStartingServer}
+                className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors flex items-center gap-1.5"
+                title="Start Preview"
+              >
+                {isStartingServer ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    Start Preview
+                  </>
+                )}
+              </button>
+            )}
+            {previewUrl && (
+              <>
+                <button
+                  onClick={() => setPreviewUrl(`${previewUrl.split('?t=')[0]}?t=${Date.now()}`)}
+                  className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                  title="Refresh Preview"
+                >
+                  <RotateCcw className="w-4 h-4 text-gray-400" />
+                </button>
+                <button
+                  onClick={() => window.open(previewUrl, '_blank')}
+                  className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                  title="Open in New Tab"
+                >
+                  <Maximize2 className="w-4 h-4 text-gray-400" />
+                </button>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex-1 bg-white">
+        <div className="flex-1 bg-white relative">
           {previewUrl ? (
             <iframe
               src={previewUrl}
@@ -463,15 +493,26 @@ function WorkspaceContent() {
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             />
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              <div className="text-center">
+            <div className="h-full flex items-center justify-center text-gray-500 bg-gray-900">
+              <div className="text-center px-8">
                 <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">No Preview Available</p>
-                <p className="text-sm mt-2">Start chatting with AI to generate your app</p>
-                {devServer && (
-                  <p className="text-xs mt-4 text-green-400">
-                    Dev server detected! Preview will load automatically.
-                  </p>
+                <p className="text-lg font-medium text-white">No Preview Available</p>
+                <p className="text-sm mt-2 text-gray-400">
+                  {Object.keys(files).length > 0
+                    ? 'Click "Start Preview" to run your app'
+                    : 'Start chatting with AI to generate your app'}
+                </p>
+                {serverError && (
+                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs text-left">
+                    <p className="font-semibold mb-1">Error starting preview:</p>
+                    <p className="font-mono">{serverError}</p>
+                  </div>
+                )}
+                {isStartingServer && (
+                  <div className="mt-4 flex items-center justify-center gap-2 text-blue-400">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm">Starting development server...</span>
+                  </div>
                 )}
               </div>
             </div>
