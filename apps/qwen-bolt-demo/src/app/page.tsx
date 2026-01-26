@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ChevronDown } from 'lucide-react';
+import { Code2, ChevronDown } from 'lucide-react';
 
 export default function Home() {
   const [input, setInput] = useState('');
@@ -46,10 +46,10 @@ export default function Home() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <Code2 className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">bolt.new</span>
+              <span className="text-xl font-bold text-white">Qwen Coder</span>
             </div>
             <div className="flex items-center gap-4">
               <button className="text-gray-400 hover:text-white transition-colors text-sm">
@@ -80,8 +80,8 @@ export default function Home() {
         <div className="w-full max-w-4xl mx-auto text-center space-y-8">
           {/* 版本标签 */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-300">
-            <Sparkles className="w-4 h-4" />
-            <span>Introducing Bolt V2</span>
+            <Code2 className="w-4 h-4" />
+            <span>Powered by Qwen Code SDK</span>
           </div>
 
           {/* 主标题 */}
@@ -117,7 +117,7 @@ export default function Home() {
                   <div className="flex items-center gap-4">
                     {/* 模型选择器 */}
                     <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-sm text-gray-300 transition-colors">
-                      <Sparkles className="w-4 h-4" />
+                      <Code2 className="w-4 h-4" />
                       <span>Sonnet 4.5</span>
                       <ChevronDown className="w-4 h-4" />
                     </button>

@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
-  Sparkles, 
+  Code2, 
   Send, 
   X,
   Maximize2,
   RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import CodeRenderer from '@/components/CodeRenderer';
 
@@ -342,9 +343,9 @@ function WorkspaceContent() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+              <Code2 className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold">bolt.new</span>
+            <span className="font-semibold">Qwen Coder</span>
           </div>
           <button className="p-1.5 hover:bg-white/10 rounded transition-colors">
             <X className="w-5 h-5" />
@@ -394,7 +395,7 @@ function WorkspaceContent() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="How can Bolt help you today?"
+              placeholder="What would you like to build today?"
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               rows={2}
@@ -425,7 +426,7 @@ function WorkspaceContent() {
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-900 text-gray-500">
             <div className="text-center">
-              <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <Code2 className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg font-medium">No files yet</p>
               <p className="text-sm mt-2">Start chatting with AI to generate your project</p>
             </div>
@@ -496,7 +497,7 @@ function WorkspaceContent() {
           ) : (
             <div className="h-full flex items-center justify-center text-gray-500 bg-gray-900">
               <div className="text-center px-8">
-                <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <Code2 className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <p className="text-lg font-medium text-white">No Preview Available</p>
                 <p className="text-sm mt-2 text-gray-400">
                   {Object.keys(files).length > 0
