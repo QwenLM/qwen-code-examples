@@ -29,7 +29,24 @@
 - `NEXT_PUBLIC_SUPABASE_URL` - 你的 Supabase 项目 URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - 你的 Supabase 匿名密钥
 
-### 2. 安装依赖
+### 2. 数据库设置
+
+**重要提示：** 你需要手动创建数据库表结构。本项目提供了数据库迁移文件，位于 `supabase/migrations/000001_init_simple_schema.sql`。
+
+你可以通过以下方式之一来创建数据库表：
+
+**选项 A：使用 Supabase CLI**
+```bash
+# 安装 Supabase CLI 后执行
+supabase db push
+```
+
+**选项 B：手动执行 SQL**
+1. 登录到你的 Supabase 项目控制台
+2. 转到 SQL 编辑器
+3. 复制并执行 `supabase/migrations/000001_init_simple_schema.sql` 文件中的所有 SQL 语句
+
+### 3. 安装依赖
 
 ```bash
 npm install
