@@ -45,7 +45,7 @@ function WorkspaceContent() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasInitializedRef = useRef(false);
 
-  // 启动开发服务器
+  // Start development server
   const startDevServer = async () => {
     if (!sessionId || isStartingServer) return;
 
@@ -55,9 +55,9 @@ function WorkspaceContent() {
     try {
       console.log('[Workspace] Starting dev server for session:', sessionId);
       
-      // 设置超时
+      // Set timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2分钟超时
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes timeout
 
       const response = await fetch('/api/dev-server', {
         method: 'POST',
@@ -73,19 +73,19 @@ function WorkspaceContent() {
 
       if (data.success) {
         if (data.type === 'static') {
-          // 静态 HTML 项目，直接使用预览 API
+          // Static HTML project, use preview API directly
           setPreviewUrl(`/api/preview?sessionId=${sessionId}&t=${Date.now()}`);
         } else {
-          // 动态项目，使用开发服务器
+          // Dynamic project, use development server
           setDevServer({
             port: data.port,
             framework: data.framework,
             url: data.url,
           });
-          // 设置预览 URL 为开发服务器地址
+          // Set preview URL to development server address
           setPreviewUrl(`${data.url}?t=${Date.now()}`);
         }
-        setServerError(''); // 清除错误
+        setServerError(''); // Clear error
       } else {
         setServerError(data.error || 'Failed to start dev server');
       }
@@ -109,7 +109,7 @@ function WorkspaceContent() {
     scrollToBottom();
   }, [messages, currentResponse]);
 
-  // 自动发送初始提示（只执行一次）
+  // Auto-send initial prompt (execute only once)
   useEffect(() => {
     if (initialPrompt && messages.length === 0 && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
@@ -117,7 +117,7 @@ function WorkspaceContent() {
     }
   }, [initialPrompt]);
 
-  // 递归收集所有文件路径
+  // Recursively collect all file paths
   const collectFilePaths = (nodes: FileNode[]): string[] => {
     const paths: string[] = [];
     for (const node of nodes) {
@@ -130,7 +130,7 @@ function WorkspaceContent() {
     return paths;
   };
 
-  // 加载所有文件内容
+  // Load all file contents
   const loadAllFiles = async (sid: string) => {
     console.log('[loadAllFiles] Starting to load files for session:', sid);
     try {
@@ -164,7 +164,7 @@ function WorkspaceContent() {
         console.log('[loadAllFiles] All files loaded:', Object.keys(fileContents));
         setFiles(fileContents);
         
-        // 设置第一个文件为活动文件
+        // Set first file as active file
         if (filePaths.length > 0 && !activeFile) {
           console.log('[loadAllFiles] Setting active file:', filePaths[0]);
           setActiveFile(filePaths[0]);
@@ -177,7 +177,7 @@ function WorkspaceContent() {
     }
   };
 
-  // 更新预览 - 已移除自动预览逻辑，改为手动点击按钮启动
+  // Update preview - Auto-preview logic removed, changed to manual button click
   // const updatePreview = (sid: string) => {
   //   setPreviewUrl(`/api/preview?sessionId=${sid}&t=${Date.now()}`);
   // };
@@ -233,21 +233,21 @@ function WorkspaceContent() {
                 try {
                   const parsed = JSON.parse(jsonStr);
 
-                  // 处理会话信息
+                  // Handle session info
                   if (parsed.type === 'session_info') {
                     currentSessionId = parsed.sessionId;
                     setSessionId(parsed.sessionId);
                     console.log('[Workspace] Session ID:', parsed.sessionId);
                   }
 
-                  // 处理文件更新通知
+                  // Handle file update notification
                   if (parsed.type === 'file_updated') {
                     console.log('[Workspace] File updated:', parsed.tool, parsed.input);
-                    // 立即刷新文件（不自动预览）
+                    // Refresh files immediately (no auto-preview)
                     if (currentSessionId) {
                       console.log('[Workspace] Triggering file reload for session:', currentSessionId);
                       loadAllFiles(currentSessionId);
-                      // 移除自动预览，改为用户手动点击按钮
+                      // Auto-preview removed, changed to manual button click
                       // updatePreview(currentSessionId);
                     }
                   }
@@ -255,12 +255,12 @@ function WorkspaceContent() {
                   if (parsed.type === 'result') {
                     hasReceivedResult = true;
                     console.log('[Workspace] Received result, final refresh');
-                    // 最终刷新文件（不自动预览）
+                    // Final file refresh (no auto-preview)
                     if (currentSessionId) {
-                      // 延迟一下确保文件写入完成
+                      // Delay to ensure file write completion
                       setTimeout(() => {
                         loadAllFiles(currentSessionId);
-                        // 移除自动预览，改为用户手动点击按钮
+                        // Auto-preview removed, changed to manual button click
                         // updatePreview(currentSessionId);
                       }, 1000);
                     }
@@ -317,17 +317,17 @@ function WorkspaceContent() {
     }
   };
 
-  // 处理文件选择
+  // Handle file selection
   const handleSelectFile = (path: string) => {
     setActiveFile(path);
   };
 
-  // 处理代码变更（只读模式，不需要实现）
+  // Handle code change (read-only mode, no implementation needed)
   const handleCodeChange = (code: string, filename?: string) => {
     console.log('Code changed:', filename, code);
   };
 
-  // 调试日志
+  // Debug log
   console.log('[Workspace Debug]', {
     sessionId,
     filesCount: Object.keys(files).length,
@@ -339,9 +339,9 @@ function WorkspaceContent() {
 
   return (
     <div className="flex h-screen bg-black text-white">
-      {/* 左侧：聊天区域 */}
+      {/* Left: Chat area */}
       <div className="w-96 flex flex-col border-r border-gray-800">
-        {/* 顶部工具栏 */}
+        {/* Top toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
@@ -354,7 +354,7 @@ function WorkspaceContent() {
           </button>
         </div>
 
-        {/* 消息列表 */}
+        {/* Message list */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((msg) => (
             <div
@@ -390,7 +390,7 @@ function WorkspaceContent() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 输入区域 */}
+        {/* Input area */}
         <div className="p-4 border-t border-gray-800">
           <div className="flex gap-2">
             <textarea
@@ -413,7 +413,7 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      {/* 中间：代码编辑器 */}
+      {/* Middle: Code editor */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {Object.keys(files).length > 0 ? (
           <CodeRenderer
@@ -436,7 +436,7 @@ function WorkspaceContent() {
         )}
       </div>
 
-      {/* 右侧：预览 */}
+      {/* Right: Preview */}
       <div className="w-1/3 flex flex-col bg-gray-900 border-l border-gray-700">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-gray-800">
           <div className="flex items-center gap-2">
