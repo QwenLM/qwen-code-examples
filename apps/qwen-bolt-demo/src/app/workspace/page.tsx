@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import CodeRenderer from '@/components/CodeRenderer';
 import { PlanMessage, containsPlan } from '@/components/PlanMessage';
+import { SummaryMessage, containsSummary } from '@/components/SummaryMessage';
 
 interface Message {
   id: string;
@@ -359,6 +360,7 @@ function WorkspaceContent() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((msg) => {
             const isPlan = msg.role === 'assistant' && containsPlan(msg.content);
+            const isSummary = msg.role === 'assistant' && !isPlan && containsSummary(msg.content);
             
             return (
               <div
@@ -372,6 +374,10 @@ function WorkspaceContent() {
                 ) : isPlan ? (
                   <div className="max-w-[85%]">
                     <PlanMessage content={msg.content} />
+                  </div>
+                ) : isSummary ? (
+                  <div className="max-w-[85%]">
+                    <SummaryMessage content={msg.content} />
                   </div>
                 ) : (
                   <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-gray-800 text-gray-100">
@@ -387,6 +393,14 @@ function WorkspaceContent() {
               {containsPlan(currentResponse) ? (
                 <div className="max-w-[85%]">
                   <PlanMessage content={currentResponse} />
+                  <div className="flex items-center mt-2 text-blue-400">
+                    <div className="animate-pulse">●</div>
+                    <span className="ml-2 text-xs">Typing...</span>
+                  </div>
+                </div>
+              ) : containsSummary(currentResponse) ? (
+                <div className="max-w-[85%]">
+                  <SummaryMessage content={currentResponse} />
                   <div className="flex items-center mt-2 text-blue-400">
                     <div className="animate-pulse">●</div>
                     <span className="ml-2 text-xs">Typing...</span>
