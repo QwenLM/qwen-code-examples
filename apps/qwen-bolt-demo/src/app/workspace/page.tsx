@@ -9,10 +9,14 @@ import {
   Maximize2,
   RotateCcw,
   Sparkles,
+  Terminal,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import CodeRenderer from '@/components/CodeRenderer';
 import { PlanMessage, containsPlan } from '@/components/PlanMessage';
 import { SummaryMessage, containsSummary } from '@/components/SummaryMessage';
+import { TerminalPanel } from '@/components/TerminalPanel';
 
 interface Message {
   id: string;
@@ -43,6 +47,8 @@ function WorkspaceContent() {
   const [devServer, setDevServer] = useState<{ port: number; framework: string; url: string } | null>(null);
   const [isStartingServer, setIsStartingServer] = useState(false);
   const [serverError, setServerError] = useState<string>('');
+  const [devServerLogs, setDevServerLogs] = useState<string[]>([]);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasInitializedRef = useRef(false);
@@ -340,7 +346,7 @@ function WorkspaceContent() {
   });
 
   return (
-    <div className="flex h-screen bg-black text-white">
+    <div className="flex h-screen bg-black text-white relative">
       {/* Left: Chat area */}
       <div className="w-96 flex flex-col border-r border-gray-800">
         {/* Top toolbar */}
@@ -556,6 +562,23 @@ function WorkspaceContent() {
           )}
         </div>
       </div>
+
+      {/* Terminal Panel - Fixed at bottom */}
+      {isTerminalOpen && (
+        <div className="fixed bottom-0 left-96 right-0 h-64 z-50">
+          <TerminalPanel devServerLogs={devServerLogs} />
+        </div>
+      )}
+
+      {/* Terminal Toggle Button - Fixed at bottom right */}
+      <button
+        onClick={() => setIsTerminalOpen(!isTerminalOpen)}
+        className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-300 transition-colors flex items-center gap-2 shadow-lg"
+      >
+        <Terminal className="w-4 h-4" />
+        <span>{isTerminalOpen ? 'Hide' : 'Show'} Terminal</span>
+        {isTerminalOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+      </button>
     </div>
   );
 }
