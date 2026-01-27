@@ -23,55 +23,60 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ fil
     });
   };
 
-  // Filter file tree based on search query
-  const filterNodes = (nodes: FileNode[]): FileNode[] => {
-    if (!searchQuery.trim()) return nodes;
-    
-    const query = searchQuery.toLowerCase();
-    const filtered: FileNode[] = [];
-    
-    for (const node of nodes) {
-      if (node.type === 'file') {
-        // Check if file name matches
-        if (node.name.toLowerCase().includes(query)) {
-          filtered.push(node);
-        }
-      } else if (node.type === 'directory' && node.children) {
-        // Recursively filter children
-        const filteredChildren = filterNodes(node.children);
-        if (filteredChildren.length > 0) {
-          filtered.push({
-            ...node,
-            children: filteredChildren,
-          });
+  // Filter tree based on search query
+  const filteredTree = useMemo(() => {
+    const filterNodes = (nodes: FileNode[], query: string): FileNode[] => {
+      if (!query.trim()) return nodes;
+      
+      const lowerQuery = query.toLowerCase();
+      const filtered: FileNode[] = [];
+      
+      for (const node of nodes) {
+        if (node.type === 'file') {
+          // Check if file name matches
+          if (node.name.toLowerCase().includes(lowerQuery)) {
+            filtered.push(node);
+          }
+        } else if (node.type === 'directory' && node.children) {
+          // Recursively filter children
+          const filteredChildren = filterNodes(node.children, query);
+          if (filteredChildren.length > 0) {
+            filtered.push({
+              ...node,
+              children: filteredChildren,
+            });
+          }
         }
       }
-    }
+      
+      return filtered;
+    };
     
-    return filtered;
-  };
+    return filterNodes(fileTree, searchQuery);
+  }, [fileTree, searchQuery]);
 
-  // Auto-expand folders when searching
-  const filteredTree = useMemo(() => {
-    const filtered = filterNodes(fileTree);
-    
-    // Auto-expand all folders when searching
+  // Auto-expand folders when searching (use useEffect for side effects)
+  React.useEffect(() => {
     if (searchQuery.trim()) {
-      const expandAll = (nodes: FileNode[]) => {
+      const collectPaths = (nodes: FileNode[]): string[] => {
+        const paths: string[] = [];
         for (const node of nodes) {
           if (node.type === 'directory') {
-            setExpandedFolders(prev => new Set([...prev, node.path]));
+            paths.push(node.path);
             if (node.children) {
-              expandAll(node.children);
+              paths.push(...collectPaths(node.children));
             }
           }
         }
+        return paths;
       };
-      expandAll(filtered);
+      
+      const pathsToExpand = collectPaths(filteredTree);
+      if (pathsToExpand.length > 0) {
+        setExpandedFolders(new Set(pathsToExpand));
+      }
     }
-    
-    return filtered;
-  }, [fileTree, searchQuery]);
+  }, [searchQuery, filteredTree]);
 
   const renderNode = (node: FileNode, level: number = 0) => {
     const isExpanded = expandedFolders.has(node.path);
