@@ -21,6 +21,7 @@ type EventPayloadMapping = {
     "get-api-config": { apiKey: string; baseURL: string; model: string; apiType?: "openai" } | null;
     "save-api-config": { success: boolean; error?: string };
     "check-api-config": { hasConfig: boolean; config: { apiKey: string; baseURL: string; model: string; apiType?: "openai" } | null };
+    "open-external": void;
 }
 
 interface Window {
@@ -36,5 +37,6 @@ interface Window {
         getApiConfig: () => Promise<{ apiKey: string; baseURL: string; model: string; apiType?: "openai" } | null>;
         saveApiConfig: (config: { apiKey: string; baseURL: string; model: string; apiType?: "openai" }) => Promise<{ success: boolean; error?: string }>;
         checkApiConfig: () => Promise<{ hasConfig: boolean; config: { apiKey: string; baseURL: string; model: string; apiType?: "openai" } | null }>;
+        openExternal: (url: string) => Promise<void>;
     }
 }

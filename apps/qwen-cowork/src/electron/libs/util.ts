@@ -53,12 +53,6 @@ export function getEnhancedEnv(): Record<string, string> {
     filteredEnv.OPENAI_API_KEY = apiConfig.apiKey;
     filteredEnv.OPENAI_BASE_URL = apiConfig.baseURL;
     filteredEnv.OPENAI_MODEL = apiConfig.model;
-    
-    console.log('[getEnhancedEnv] Added Qwen config to env:', {
-      QWEN_BASE_URL: apiConfig.baseURL,
-      QWEN_MODEL: apiConfig.model,
-      hasApiKey: !!apiConfig.apiKey
-    });
   } else {
     console.warn('[getEnhancedEnv] No API config found, Qwen SDK may fail');
   }

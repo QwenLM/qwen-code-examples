@@ -64,7 +64,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         apiKey: apiKey.trim(),
         baseURL: baseURL.trim(),
         model: model.trim(),
-        apiType: "qwen"
+        apiType: "openai"
       });
 
       if (result.success) {
@@ -132,6 +132,16 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 onChange={(e) => setApiKey(e.target.value)}
                 required
               />
+              <span className="text-xs text-muted">
+                获取 API Key：
+                <button
+                  type="button"
+                  onClick={() => window.electron.openExternal('https://bailian.console.aliyun.com/?tab=model#/api-key')}
+                  className="ml-1 text-accent hover:text-accent-hover underline transition-colors cursor-pointer bg-transparent border-none p-0"
+                >
+                  阿里云百炼控制台
+                </button>
+              </span>
             </label>
 
             <label className="grid gap-1.5">

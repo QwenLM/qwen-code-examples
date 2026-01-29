@@ -8,11 +8,6 @@ import { loadApiConfig, saveApiConfig, type ApiConfig } from "./config-store.js"
 export function getCurrentApiConfig(): ApiConfig | null {
   const uiConfig = loadApiConfig();
   if (uiConfig) {
-    console.log("[claude-settings] Using UI config:", {
-      baseURL: uiConfig.baseURL,
-      model: uiConfig.model,
-      apiType: uiConfig.apiType
-    });
     return uiConfig;
   }
 
