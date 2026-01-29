@@ -110,21 +110,20 @@ function App() {
     totalMessages,
   } = useMessageWindow(messages, permissionRequests, activeSessionId);
 
-  // 注释掉启动时检查 API 配置的逻辑
-  // 使用 Qwen Code 时，配置由 Qwen Code 管理，不需要在启动时弹出配置对话框
-  // useEffect(() => {
-  //   if (!apiConfigChecked) {
-  //     window.electron.checkApiConfig().then((result) => {
-  //       setApiConfigChecked(true);
-  //       if (!result.hasConfig) {
-  //         setShowSettingsModal(true);
-  //       }
-  //     }).catch((err) => {
-  //       console.error("Failed to check API config:", err);
-  //       setApiConfigChecked(true);
-  //     });
-  //   }
-  // }, [apiConfigChecked, setApiConfigChecked, setShowSettingsModal]);
+  // 启动时检查 API 配置，如果没有配置则自动弹出设置弹窗
+  useEffect(() => {
+    if (!apiConfigChecked) {
+      window.electron.checkApiConfig().then((result) => {
+        setApiConfigChecked(true);
+        if (!result.hasConfig) {
+          setShowSettingsModal(true);
+        }
+      }).catch((err) => {
+        console.error("Failed to check API config:", err);
+        setApiConfigChecked(true);
+      });
+    }
+  }, [apiConfigChecked, setApiConfigChecked, setShowSettingsModal]);
 
   useEffect(() => {
     if (connected) sendEvent({ type: "session.list" });

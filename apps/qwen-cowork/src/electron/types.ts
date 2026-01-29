@@ -10,6 +10,7 @@ export type ClaudeSettingsEnv = {
   QWEN_API_KEY?: string;
   QWEN_BASE_URL?: string;
   QWEN_MODEL?: string;
+  QWEN_AUTH_TYPE?: string;
   API_TIMEOUT_MS?: string;
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC?: string;
 };

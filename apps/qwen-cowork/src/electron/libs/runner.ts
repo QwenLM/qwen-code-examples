@@ -1,7 +1,7 @@
 import { query, type SDKMessage, type PermissionResult } from "@qwen-code/sdk";
 import type { ServerEvent } from "../types.js";
 import type { Session } from "./session-store.js";
-import { qwenCodePath, enhancedEnv} from "./util.js";
+import { qwenCodePath, getEnhancedEnv} from "./util.js";
 
 
 export type RunnerOptions = {
@@ -46,8 +46,9 @@ export async function runClaude(options: RunnerOptions): Promise<RunnerHandle> {
           cwd: session.cwd ?? DEFAULT_CWD,
           // resume: resumeSessionId, // qwen-code/sdk 暂不支持会话恢复
           abortController,
-          env: enhancedEnv,
+          env: getEnhancedEnv(), // Get latest env with API config
           pathToQwenExecutable: qwenCodePath,
+          authType: 'openai',  // Use OpenAI-compatible API authentication
           permissionMode: "yolo",  // 自动批准所有工具调用
           includePartialMessages: true,
           canUseTool: async (toolName, input, { signal }) => {

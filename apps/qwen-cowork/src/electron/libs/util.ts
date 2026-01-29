@@ -2,6 +2,7 @@ import { query, type SDKResultMessage, type SDKResultMessageSuccess } from "@qwe
 import { app } from "electron";
 import { join } from "path";
 import { homedir } from "os";
+import { getCurrentApiConfig } from "./claude-settings.js";
 
 // Get Qwen Code CLI path for packaged app
 export function getQwenCodePath(): string | undefined {
@@ -41,6 +42,27 @@ export function getEnhancedEnv(): Record<string, string> {
     }
   }
 
+  // Add API configuration from getCurrentApiConfig
+  const apiConfig = getCurrentApiConfig();
+  if (apiConfig) {
+    filteredEnv.QWEN_API_KEY = apiConfig.apiKey;
+    filteredEnv.QWEN_BASE_URL = apiConfig.baseURL;
+    filteredEnv.QWEN_MODEL = apiConfig.model;
+    
+    // For OpenAI-compatible auth, also set OPENAI_API_KEY
+    filteredEnv.OPENAI_API_KEY = apiConfig.apiKey;
+    filteredEnv.OPENAI_BASE_URL = apiConfig.baseURL;
+    filteredEnv.OPENAI_MODEL = apiConfig.model;
+    
+    console.log('[getEnhancedEnv] Added Qwen config to env:', {
+      QWEN_BASE_URL: apiConfig.baseURL,
+      QWEN_MODEL: apiConfig.model,
+      hasApiKey: !!apiConfig.apiKey
+    });
+  } else {
+    console.warn('[getEnhancedEnv] No API config found, Qwen SDK may fail');
+  }
+
   return {
     ...filteredEnv,
     PATH: newPath,
@@ -48,6 +70,7 @@ export function getEnhancedEnv(): Record<string, string> {
 }
 
 export const qwenCodePath = getQwenCodePath();
+// Note: enhancedEnv should be obtained dynamically via getEnhancedEnv() to ensure latest config
 export const enhancedEnv = getEnhancedEnv();
 
 export const generateSessionTitle = async (userIntent: string | null): Promise<string> => {
@@ -61,7 +84,8 @@ ${userIntent}
 Directly output the title only, do not include any other content.`,
       options: {
         pathToQwenExecutable: qwenCodePath,
-        env: enhancedEnv,
+        env: getEnhancedEnv(), // Get latest env with API config
+        authType: 'openai',  // Use OpenAI-compatible API authentication
         permissionMode: "yolo",
         maxSessionTurns: 1,
       }

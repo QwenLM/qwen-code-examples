@@ -6,8 +6,8 @@ interface SettingsModalProps {
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const [apiKey, setApiKey] = useState("");
-  const [baseURL, setBaseURL] = useState("");
-  const [model, setModel] = useState("");
+  const [baseURL, setBaseURL] = useState("https://dashscope.aliyuncs.com/compatible-mode/v1");
+  const [model, setModel] = useState("qwen3-coder-plus");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         apiKey: apiKey.trim(),
         baseURL: baseURL.trim(),
         model: model.trim(),
-        apiType: "anthropic"
+        apiType: "qwen"
       });
 
       if (result.success) {
@@ -99,7 +99,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             </svg>
           </button>
         </div>
-        <p className="mt-2 text-sm text-muted">Supports Anthropic’s official API as well as third-party APIs compatible with the Anthropic format.</p>
+        <p className="mt-2 text-sm text-muted">Supports Qwen API and compatible third-party APIs.</p>
 
         {loading ? (
           <div className="mt-5 flex items-center justify-center py-8">
@@ -139,7 +139,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <input
                 type="text"
                 className="rounded-xl border border-ink-900/10 bg-surface-secondary px-4 py-2.5 text-sm text-ink-800 placeholder:text-muted-light focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
-                placeholder="claude-3-5-sonnet-20241022"
+                placeholder="qwen3-coder-plus"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 required

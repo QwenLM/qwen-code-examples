@@ -2,13 +2,13 @@ import { app } from "electron";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { join } from "path";
 
-export type ApiType = "anthropic";
+export type ApiType = "openai";
 
 export type ApiConfig = {
   apiKey: string;
   baseURL: string;
   model: string;
-  apiType?: ApiType; // "anthropic" 
+  apiType?: ApiType; // "openai"
 };
 
 const CONFIG_FILE_NAME = "api-config.json";
@@ -30,7 +30,7 @@ export function loadApiConfig(): ApiConfig | null {
     if (config.apiKey && config.baseURL && config.model) {
       // 设置默认 apiType
       if (!config.apiType) {
-        config.apiType = "anthropic";
+        config.apiType = "openai";
       }
       return config;
     }
@@ -58,7 +58,7 @@ export function saveApiConfig(config: ApiConfig): void {
     
     // 设置默认 apiType set default apiType
     if (!config.apiType) {
-      config.apiType = "anthropic";
+      config.apiType = "openai";
     }
     
     // 保存配置 save config
