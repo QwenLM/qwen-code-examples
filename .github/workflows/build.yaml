@@ -43,9 +43,11 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
+        working-directory: apps/qwen-cowork
         run: bun install
 
       - name: Build Desktop
+        working-directory: apps/qwen-cowork
         run: bun run ${{ matrix.script }}
 
       - name: Upload Artifacts
@@ -53,9 +55,9 @@ jobs:
         with:
           name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.exe
+            apps/qwen-cowork/dist/*.dmg
+            apps/qwen-cowork/dist/*.AppImage
+            apps/qwen-cowork/dist/*.exe
 
   release:
     needs: [build-desktop]
