@@ -2,6 +2,12 @@
 	"name": "agent-cowork",
 	"private": true,
 	"version": "0.0.2",
+	"description": "A desktop application for agent collaboration",
+	"author": "QwenLM",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/QwenLM/qwen-code-examples.git"
+	},
 	"type": "module",
 	"main": "dist-electron/main.js",
 	"scripts": {
