@@ -139,8 +139,8 @@ A product promotional video creation tool that combines the power of Remotion (p
 
 ```bash
 # Clone the repository
-git clone https://github.com/anthropics/qwen-code-examples.git
-cd qwen-code-examples/apps
+git clone https://github.com/QwenLM/qwen-code-examples
+cd qwen-code-examples/apps/qwen-cowork
 
 # Install dependencies
 pnpm install
