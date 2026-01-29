@@ -25,7 +25,7 @@ jobs:
             platform: mac
             arch: arm64
             script: dist:mac-arm64
-          - os: macos-15-large
+          - os: macos-13
             platform: mac
             arch: x64
             script: dist:mac-x64
