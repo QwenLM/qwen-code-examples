@@ -64,18 +64,33 @@ if (!gotTheLock) {
             mainWindow.focus();
         }
     });
+
+    // On macOS, restore or focus window when app is activated
+    app.on('activate', () => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            mainWindow.focus();
+        }
+        // Note: If window was closed, user can use Cmd+N or we can add window recreation logic here
+    });
 }
 
 // Initialize everything when app is ready
 app.on("ready", () => {
-    
     Menu.setApplicationMenu(null);
     // Setup event handlers
     app.on("before-quit", cleanup);
     app.on("will-quit", cleanup);
     app.on("window-all-closed", () => {
-        cleanup();
-        app.quit();
+        // On macOS, keep the app running even when all windows are closed
+        // This matches the standard macOS behavior
+        if (process.platform !== 'darwin') {
+            cleanup();
+            app.quit();
+        }
+        // On macOS, don't quit - user can reopen window or use Cmd+Q to quit
     });
 
     process.on("SIGTERM", handleSignal);
@@ -102,8 +117,15 @@ app.on("ready", () => {
         show: false  // Don't show until ready to prevent flashing
     });
 
-    if (isDev()) mainWindow.loadURL(`http://localhost:${DEV_PORT}`)
-    else mainWindow.loadFile(getUIPath());
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+
+    if (isDev()) {
+        mainWindow.loadURL(`http://localhost:${DEV_PORT}`)
+    } else {
+        mainWindow.loadFile(getUIPath());
+    }
     
     // Show window when ready to prevent crashes during load
     mainWindow.once('ready-to-show', () => {
