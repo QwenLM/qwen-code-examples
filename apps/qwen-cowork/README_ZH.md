@@ -17,7 +17,7 @@
 
 👇 实战场景：整理本地文件夹中乱七八糟的文件演示
 
-<video src="https://cloud.video.taobao.com/vod/W4hoEc3Bd4C2I2XGh58u9udG_2SWtvvVuf9SQ-gHc_Q.mp4" controls></video>
+[整理桌面文件](https://cloud.video.taobao.com/vod/W4hoEc3Bd4C2I2XGh58u9udG_2SWtvvVuf9SQ-gHc_Q.mp4)
 
 ## 加入交流
 
@@ -79,7 +79,23 @@ Agent Cowork **与 Qwen Code 共享配置**。
 
 ## 🚀 快速开始
 
-### 前置条件
+### 直接安装（推荐）
+
+从项目中选择下载对应电脑安装包： https://github.com/QwenLM/qwen-code-examples/releases
+
+![[20260130.png]]
+
+**安装指导视频**👇
+
+[点击查看演示视频](https://cloud.video.taobao.com/vod/tsbnZm8AFpwd2h9U8oBJ3_A2gBdA63flXhYrTqKnX7w.mp4)
+
+如果遇到无法打开的情况，可以打开【系统设置】-【隐私与安全性】- 拖动到下方【安全性】- 选择【仍要打开】
+
+![](https://gw.alicdn.com/imgextra/i4/O1CN016zdcQv1zsG5eHIdfI_!!6000000006769-2-tps-1584-950.png)
+
+### 源码安装
+
+**前置条件**
 
 - [Bun](https://bun.sh/) or Node. js 22+
 - [Qwen Code](https://qwenlm.github.io/qwen-code-docs/en/users/overview/) installed and authenticated
@@ -94,7 +110,7 @@ curl -fsSL https://bun.sh/install | bash
 exec /bin/zsh
 ```
 
-### 下载安装
+**下载安装**
 
 ```bash
 #克隆仓库
@@ -118,7 +134,8 @@ bun run dist:linux        # Linux
 
 **安装指导视频**👇
 
-<video src="https://cloud.video.taobao.com/vod/5MBr-hphyK0gxNnV-UaHsN_fMwlbzfvLe1oQXV40_10.mp4" controls></video>
+[源码安装演示](https://cloud.video.taobao.com/vod/5MBr-hphyK0gxNnV-UaHsN_fMwlbzfvLe1oQXV40_10.mp4)
+
 
 ## 架构概览
 

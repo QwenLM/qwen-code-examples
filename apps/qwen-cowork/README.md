@@ -17,12 +17,12 @@ It's not just a GUI, but a genuine AI assistant that can help you handle many te
 
 👇 Practical scenario: Demonstrating organizing messy files in a local folder
 
-<video src="https://cloud.video.taobao.com/vod/W4hoEc3Bd4C2I2XGh58u9udG_2SWtvvVuf9SQ-gHc_Q.mp4" controls></video>
+[watch video](https://cloud.video.taobao.com/vod/W4hoEc3Bd4C2I2XGh58u9udG_2SWtvvVuf9SQ-gHc_Q.mp4)
 
 ## Join Community
 
-| WeChat Group                                                                                          | DingTalk Group                                                                                      |
-| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| WeChat Group                                                                                     | DingTalk Group                                                                                   |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | ![](https://gw.alicdn.com/imgextra/i1/O1CN01LF3SYz1Vv42Yrh1zs_!!6000000002714-2-tps-396-396.png) | ![](https://gw.alicdn.com/imgextra/i4/O1CN01oRKsAo1fMqbmM6FW3_!!6000000003993-2-tps-380-380.png) |
 
 ## Core Capabilities
@@ -79,7 +79,23 @@ This means:
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Direct Installation (Recommended)
+
+Download the installation package for your computer from the project: https://github.com/QwenLM/qwen-code-examples/releases
+
+![[20260130.png]]
+
+**Installation Guide Video** 👇
+
+[Installation Guide Video](https://cloud.video.taobao.com/vod/tsbnZm8AFpwd2h9U8oBJ3_A2gBdA63flXhYrTqKnX7w.mp4)
+
+If you encounter issues opening the app, go to **System Settings** → **Privacy & Security** → scroll down to **Security** → select **Open Anyway**
+
+![](https://gw.alicdn.com/imgextra/i4/O1CN016zdcQv1zsG5eHIdfI_!!6000000006769-2-tps-1584-950.png)
+
+### Source Installation
+
+**Prerequisites**
 
 - [Bun](https://bun.sh/) or Node.js 22+
 - [Qwen Code](https://qwenlm.github.io/qwen-code-docs/en/users/overview/) installed and authenticated
@@ -94,7 +110,7 @@ curl -fsSL https://bun.sh/install | bash
 exec /bin/zsh
 ```
 
-### Download and Install
+**Download and Install**
 
 ```bash
 # Clone repository
@@ -118,18 +134,18 @@ bun run dist:linux        # Linux
 
 **Installation Guide Video** 👇
 
-<video src="https://cloud.video.taobao.com/vod/5MBr-hphyK0gxNnV-UaHsN_fMwlbzfvLe1oQXV40_10.mp4" controls></video>
+[Installation Guide Video](https://cloud.video.taobao.com/vod/5MBr-hphyK0gxNnV-UaHsN_fMwlbzfvLe1oQXV40_10.mp4)
 
 ## Architecture Overview
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Electron 39 |
-| Frontend | React 19, Tailwind CSS 4 |
-| State Management | Zustand |
-| Database | better-sqlite3 (WAL mode) |
-| AI | @qwen-code/sdk |
-| Build | Vite, electron-builder |
+| Layer            | Technology                      |
+| ---------------- | ------------------------------- |
+| Framework        | Electron 39                     |
+| Frontend         | React 19, Tailwind CSS 4        |
+| State Management | Zustand                         |
+| Database         | better-sqlite3 (WAL mode)       |
+| AI               | @qwen-code/sdk                  |
+| Build            | Vite, electron-builder          |
 
 ## Development
 
