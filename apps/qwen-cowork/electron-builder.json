@@ -1,6 +1,6 @@
 {
     "appId": "com.devagentforge.agentcowork",
-    "productName": "Agent Cowork",
+    "productName": "QwenCowork",
     "files": [
         "dist-electron",
         "dist-react",
@@ -18,6 +18,7 @@
     "icon": "./qwen-color.png",
     "mac": {
         "target": "dmg",
+        "artifactName": "${productName}-${arch}.${ext}",
         "executableName": "QwenCowork",
         "files": [
             "!node_modules/@qwen-code/sdk/dist/cli/vendor/ripgrep/arm64-linux",
@@ -27,6 +28,7 @@
     },
     "linux": {
         "target": "AppImage",
+        "artifactName": "${productName}-${arch}.${ext}",
         "category": "Utility",
         "files": [
             "!node_modules/@qwen-code/sdk/dist/cli/vendor/ripgrep/arm64-darwin",
@@ -38,6 +40,7 @@
         "target": [
             "portable"
         ],
+        "artifactName": "${productName}-${arch}.${ext}",
         "files": [
             "!node_modules/@qwen-code/sdk/dist/cli/vendor/ripgrep/arm64-darwin",
             "!node_modules/@qwen-code/sdk/dist/cli/vendor/ripgrep/x64-darwin",
