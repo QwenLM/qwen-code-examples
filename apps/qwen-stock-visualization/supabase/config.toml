@@ -1,0 +1,39 @@
+# Setup and configuration for local Supabase development
+# This file is used by the Supabase CLI to configure your local development setup
+# For production deployments, configurations are managed in the Supabase dashboard
+
+[api]
+# Port to start the API server on
+port = 54321
+
+# Schemas to expose in the API
+schemas = ["public", "storage", "graphql_public"]
+
+# Extra search path for functions and relations
+extra_search_path = ["public", "extensions"]
+
+# Maximum number of rows that can be returned in a single request
+max_rows = 1000
+
+[db]
+# Port to start the Postgres database on
+port = 54322
+
+# Port to start the Studio on
+studio_port = 54323
+
+[auth]
+# The base URL of your website
+site_url = "http://localhost:3000"
+
+# A list of *exact* URLs that auth providers are permitted to redirect to post authentication
+additional_redirect_urls = ["https://localhost:3000"]
+
+# How long tokens are valid for, in seconds. Defaults to 3600 (1 hour)
+jwt_expiry = 3600
+
+# Enable email confirmations
+enable_confirmations = false
+
+[analytics]
+enabled = false

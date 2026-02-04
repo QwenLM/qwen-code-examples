@@ -1,0 +1,22 @@
+{
+  "name": "stock-price-mock-server",
+  "version": "1.0.0",
+  "description": "模拟股票价格更新服务器",
+  "main": "server.ts",
+  "scripts": {
+    "start": "tsx server.ts",
+    "dev": "tsx watch server.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.91.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.21.0",
+    "typescript": "5.9.3"
+  },
+  "keywords": ["stock", "mock", "api", "supabase"],
+  "author": "",
+  "license": "ISC"
+}
