@@ -48,6 +48,13 @@ Generates high-quality images from text descriptions using Alibaba Cloud's DashS
 - **Location**: `skills/image-generate/`
 - **Key Features**: Smart prompt optimization for hand-drawn styles and automated asset management.
 
+### 3. Dashboard Builder Skill
+
+Builds full-stack dashboard applications using React/Next.js + shadcn/ui + Tailwind CSS + Recharts + Express with customizable data sources. Perfect for data visualization dashboards, business intelligence interfaces, monitoring systems, KPI displays, and analytics platforms.
+
+- **Location**: `skills/dashboard-builder/`
+- **Key Features**: Professional dark theme, big screen optimization, animated components, configurable data integrations, quick start templates, and additional large-screen components.
+
 ## Marketing Materials
 
 ### Qwen Code Brochures
