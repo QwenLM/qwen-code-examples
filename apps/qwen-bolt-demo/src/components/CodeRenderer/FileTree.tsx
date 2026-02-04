@@ -1,14 +1,37 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, Download, Search, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, Search, X } from 'lucide-react';
 import { FileTreeProps } from './types';
 import { buildFileTree, getFileIcon, FileNode } from './utils';
 
-export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ files, activeFile, onSelectFile, sessionId }) => {
+export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ 
+  files, 
+  activeFile, 
+  onSelectFile, 
+  sessionId,
+  searchQuery: propSearchQuery,
+  onSearchChange,
+  isSearchOpen: propIsSearchOpen,
+  onSearchOpenChange
+}) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [localIsSearchOpen, setLocalIsSearchOpen] = useState(false);
+  
+  const searchQuery = propSearchQuery !== undefined ? propSearchQuery : localSearchQuery;
+  const isSearchOpen = propIsSearchOpen !== undefined ? propIsSearchOpen : localIsSearchOpen;
+
+  const setSearchQuery = (val: string) => {
+    if (onSearchChange) onSearchChange(val);
+    else setLocalSearchQuery(val);
+  };
+
+  const setIsSearchOpen = (val: boolean) => {
+    if (onSearchOpenChange) onSearchOpenChange(val);
+    else setLocalIsSearchOpen(val);
+  };
+
   const fileTree = buildFileTree(files);
 
   const toggleFolder = (path: string) => {
@@ -33,8 +56,13 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ fil
       
       for (const node of nodes) {
         if (node.type === 'file') {
-          // Check if file name matches
-          if (node.name.toLowerCase().includes(lowerQuery)) {
+          // Check if file name matches OR file content matches
+          const fileContent = files[node.path] || '';
+          
+          if (
+            node.name.toLowerCase().includes(lowerQuery) || 
+            fileContent.toLowerCase().includes(lowerQuery)
+          ) {
             filtered.push(node);
           }
         } else if (node.type === 'directory' && node.children) {
@@ -53,7 +81,7 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ fil
     };
     
     return filterNodes(fileTree, searchQuery);
-  }, [fileTree, searchQuery]);
+  }, [fileTree, searchQuery, files]);
 
   // Auto-expand folders when searching (use useEffect for side effects)
   React.useEffect(() => {
@@ -141,37 +169,6 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ fil
     );
   };
 
-  // Download project
-  const handleDownload = async () => {
-    if (!sessionId) {
-      alert('No session ID available');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/download?sessionId=${sessionId}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        alert(`Download failed: ${error.error || 'Unknown error'}`);
-        return;
-      }
-
-      // Create download link
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `project-${sessionId.substring(0, 8)}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download error:', error);
-      alert('Failed to download project');
-    }
-  };
 
   return (
     <div className="h-full border-r border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col">
@@ -191,15 +188,6 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({ fil
           >
             <Search className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
           </button>
-          {sessionId && Object.keys(files).length > 0 && (
-            <button
-              onClick={handleDownload}
-              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors group"
-              title="Download Project"
-            >
-              <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
-            </button>
-          )}
         </div>
       </div>
 

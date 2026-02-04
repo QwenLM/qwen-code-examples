@@ -22,6 +22,40 @@ export const MultiFileCodeRenderer: React.FC<
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [fileTreeWidth, setFileTreeWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Auto-switch to file if search query matches content and current file does not
+  useEffect(() => {
+    if (!searchQuery.trim() || !files) return;
+
+    const lowerQuery = searchQuery.toLowerCase();
+    const currentFileContent = files[activeFile] || '';
+    
+    // If current file already has the match, don't switch (user might be browsing matches in current file)
+    if (currentFileContent.toLowerCase().includes(lowerQuery)) {
+      return;
+    }
+
+    // Otherwise, find the first file that matches
+    // We sort keys to ensure deterministic behavior (e.g. alphabetical or typically utils.ts vs types.ts)
+    // Actually, 'files' keys might be unsorted. 
+    const filePaths = Object.keys(files).sort();
+    
+    for (const path of filePaths) {
+      if (path === activeFile) continue;
+      
+      const content = files[path] || '';
+      if (
+        path.toLowerCase().includes(lowerQuery) || 
+        content.toLowerCase().includes(lowerQuery)
+      ) {
+        setActiveFile(path);
+        onSelectFile?.(path);
+        break;
+      }
+    }
+  }, [searchQuery, files, activeFile, onSelectFile]);
   
   // Refs for drag tracking
   const dragStartX = useRef(0);
@@ -99,7 +133,16 @@ export const MultiFileCodeRenderer: React.FC<
       {sidebarOpen && (
         <>
           <div style={{ width: `${fileTreeWidth}px` }} className="flex-shrink-0">
-            <FileTree files={files} activeFile={activeFile} onSelectFile={handleSelectFile} sessionId={sessionId} />
+            <FileTree 
+              files={files} 
+              activeFile={activeFile} 
+              onSelectFile={handleSelectFile} 
+              sessionId={sessionId}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              isSearchOpen={isSearchOpen}
+              onSearchOpenChange={setIsSearchOpen}
+            />
           </div>
           
           {/* Resize handle */}
@@ -146,6 +189,7 @@ export const MultiFileCodeRenderer: React.FC<
             readOnly={readOnly}
             isComplete={isComplete}
             onChange={handleCodeChange}
+            searchQuery={searchQuery}
           />
         </div>
       </div>

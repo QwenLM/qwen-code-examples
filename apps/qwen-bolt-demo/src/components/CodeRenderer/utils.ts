@@ -90,5 +90,16 @@ export function buildFileTree(files: Record<string, string>): FileNode[] {
     }
   }
 
+  // Flatten single root directory if it exists (e.g. private/...)
+  // Only do this if specific patterns are found or generally?
+  // User asked for "private" specifically, but general cleaning is good.
+  // We'll flatten as long as there is only 1 root and it is a directory.
+  while (root.length === 1 && root[0].type === 'directory' && root[0].children) {
+    // Replace root with its children
+    const childNodes = root[0].children;
+    root.length = 0;
+    root.push(...childNodes);
+  }
+
   return root;
 }

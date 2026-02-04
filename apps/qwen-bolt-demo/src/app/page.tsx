@@ -114,6 +114,38 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Quick Start Templates */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8 opacity-80">
+            <button 
+              onClick={() => {
+                const prompt = "Create a modern SaaS landing page using React, Tailwind CSS, and Framer Motion. Include a Hero section with a gradient background, Features grid, and a Pricing table.";
+                router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
+              }}
+              className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
+            >
+              ✨ Landing Page
+            </button>
+            <button 
+               onClick={() => {
+                const prompt = "Create a comprehensive Admin Dashboard using Shadcn UI components. Include a sidebar, data charts using Recharts, and a data table with pagination.";
+                router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
+              }}
+              className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
+            >
+              📊 Dashboard
+            </button>
+             <button 
+               onClick={() => {
+                const prompt = "Create a Collaborative Todo App. Use React, Tailwind, and lucid-react. Simulate a Supabase backend for data persistence.";
+                router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
+              }}
+              className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
+            >
+              ✅ Todo App (Supabase)
+            </button>
+          </div>
+
         </div>
       </div>
 

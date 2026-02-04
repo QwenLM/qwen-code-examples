@@ -154,6 +154,11 @@ You can reference, read, or modify these files as needed.
     });
 
     // 添加工具权限回调到 options
+    // 用于旁路捕获文件变更并推送给前端
+    let streamController: ReadableStreamDefaultController | null = null;
+
+    // 添加工具权限回调到 options
+    // 用于旁路捕获文件变更并推送给前端
     queryOptions.canUseTool = async (toolName: string, input: any) => {
           console.log('[API /api/chat] Tool request:', toolName, JSON.stringify(input).substring(0, 200));
           
@@ -166,14 +171,10 @@ You can reference, read, or modify these files as needed.
             'read_file',
             'shell',
             'search_file',
-            'file_grep',
-            'codebase_search',
-            // 添加更多可能的工具名称
             'writefile',
             'createfile',
             'editfile',
-            'filereplace',
-            'readfile',
+            'replace_string_in_file'
           ];
           
           const toolNameLower = toolName.toLowerCase().replace(/[_-]/g, '');
@@ -182,40 +183,64 @@ You can reference, read, or modify these files as needed.
           if (isAllowed) {
             console.log('[API /api/chat] Tool allowed:', toolName);
             
-            // 🔥 关键：对于所有文件操作工具，确保路径是相对于工作目录的
+            // Normalize inputs first to ensure we have clean relative paths
+            let normalizedInput = { ...input };
+            
             if (input && typeof input === 'object') {
-              const updatedInput = { ...input } as Record<string, any>;
-              
               // 处理各种可能的路径字段名
               const pathFields = ['path', 'file_path', 'filePath', 'relative_workspace_path'];
               for (const field of pathFields) {
-                const fieldValue = updatedInput[field];
+                const fieldValue = normalizedInput[field];
                 if (fieldValue && typeof fieldValue === 'string') {
                   let newPath = fieldValue;
-                  // 如果路径是绝对路径，转换为相对路径
+                  
+                  // 1. 如果路径包含工作目录（绝对路径），移除它
+                  if (newPath.includes(workspaceDir)) {
+                    newPath = newPath.replace(workspaceDir, '');
+                  }
+                  
+                  // 2. 移除开头的 / (变为相对路径)
                   if (newPath.startsWith('/')) {
                     newPath = newPath.substring(1);
                   }
-                  // 如果路径包含工作目录，移除它
-                  if (newPath.includes(workspaceDir)) {
-                    newPath = newPath.replace(workspaceDir, '').replace(/^\//, '');
+                  
+                  // 3. 移除开头的 ./
+                  if (newPath.startsWith('./')) {
+                    newPath = newPath.substring(2);
                   }
-                  updatedInput[field] = newPath;
-                  console.log(`[API /api/chat] Updated ${field}:`, newPath);
+
+                  normalizedInput[field] = newPath;
+                  // console.log(`[API /api/chat] Normalized ${field}: ${fieldValue} -> ${newPath}`);
                 }
               }
-              
-              return {
-                behavior: 'allow',
-                updatedInput,
-              };
+            }
+
+            // 🔥 流式优化：使用标准化后的路径推送文件更新
+            if (toolNameLower.includes('write') || toolNameLower.includes('create') || toolNameLower.includes('edit') || toolNameLower.includes('replace')) {
+               // Prioritize normalized path
+               const filePath = normalizedInput.file_path || normalizedInput.path || normalizedInput.filePath;
+               
+               if (filePath && streamController) {
+                  // For 'write_file'/'create_file', we expect full content.
+                  if ((toolName === 'write_file' || toolName === 'create_file') && normalizedInput.content) {
+                      const fileEvent = {
+                         type: 'file_update',
+                         path: filePath, // This is now a clean relative path
+                         content: normalizedInput.content
+                      };
+                      const payload = `event: file\ndata: ${JSON.stringify(fileEvent)}\n\n`;
+                      streamController.enqueue(new TextEncoder().encode(payload));
+                      console.log('[API /api/chat] Pushed file update via SSE:', filePath);
+                  }
+               }
             }
             
             return {
               behavior: 'allow',
-              updatedInput: input,
+              updatedInput: normalizedInput,
             };
           }
+
           
       console.log('[API /api/chat] Tool denied:', toolName);
       return {
@@ -224,17 +249,23 @@ You can reference, read, or modify these files as needed.
       };
     };
 
-    const q = query({
-      prompt: createPromptStream(sessionId, fullPrompt),
-      options: queryOptions,
-    });
+    console.log('[API /api/chat] Query options prepared');
 
-    console.log('[API /api/chat] Query object created, waiting for initialization...');
+    let q: any = null;
 
     const stream = new ReadableStream({
       async start(controller) {
+        streamController = controller;
+        console.log('[API /api/chat] streamController assigned');
+
         let hasError = false;
         try {
+          // Initialize query INSIDE the stream start to ensure controller is ready
+          q = query({
+            prompt: createPromptStream(sessionId, fullPrompt),
+            options: queryOptions,
+          });
+
           console.log('[API /api/chat] Waiting for q.initialized...');
           await q.initialized;
           console.log('[API /api/chat] Query initialized successfully!');
@@ -257,26 +288,9 @@ You can reference, read, or modify these files as needed.
               const jsonLine = JSON.stringify(msg);
               controller.enqueue(encoder.encode(`data: ${jsonLine}\n\n`));
               
-              // 检测文件操作并通知前端
-              if ((msg as any).type === 'assistant' && (msg as any).message?.content) {
-                const content = (msg as any).message.content;
-                if (Array.isArray(content)) {
-                  for (const block of content) {
-                    if (block.type === 'tool_use' && 
-                        (block.name === 'write_file' || block.name === 'create_file' || 
-                         block.name === 'file_replace' || block.name === 'edit_file')) {
-                      // 通知前端文件已更新
-                      const fileUpdate = JSON.stringify({
-                        type: 'file_updated',
-                        sessionId,
-                        tool: block.name,
-                        input: block.input,
-                      });
-                      controller.enqueue(encoder.encode(`data: ${fileUpdate}\n\n`));
-                    }
-                  }
-                }
-              }
+              // We removed the duplicate parsing logic here.
+              // File updates are now pushed proactively via `canUseTool` hook using `streamController`.
+              
               
               // 记录 result 消息但不 break，让循环自然结束
               if ((msg as { type?: string }).type === 'result') {

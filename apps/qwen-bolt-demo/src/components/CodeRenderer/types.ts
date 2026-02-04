@@ -13,10 +13,15 @@ export interface CodeEditorPanelProps {
   readOnly?: boolean;
   isComplete?: boolean;
   onChange?: (code: string, filename?: string) => void;
+  searchQuery?: string;
 }
 
 export interface FileTreeProps {
   files: Record<string, string>;
   activeFile: string;
   onSelectFile: (path: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  isSearchOpen?: boolean;
+  onSearchOpenChange?: (open: boolean) => void;
 }

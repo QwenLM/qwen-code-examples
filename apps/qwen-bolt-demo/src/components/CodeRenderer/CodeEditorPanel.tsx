@@ -18,11 +18,26 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   readOnly = true,
   isComplete = true,
   onChange,
+  searchQuery,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const { settings } = useEditor();
   const { resolvedTheme } = useTheme();
+
+  // Handle search highlighting and scrolling
+  const highlightSearchMatch = (view: EditorView, query: string) => {
+    if (!query?.trim()) return;
+    const doc = view.state.doc.toString();
+    const idx = doc.toLowerCase().indexOf(query.toLowerCase());
+    
+    if (idx !== -1) {
+      view.dispatch({
+        selection: { anchor: idx, head: idx + query.length },
+        effects: EditorView.scrollIntoView(idx, { y: 'center' })
+      });
+    }
+  };
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -43,18 +58,22 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
       }
     };
 
-    // 保存当前代码内容（如果编辑器已存在）
-    const currentCode = viewRef.current ? viewRef.current.state.doc.toString() : code;
-
-    // 销毁旧的编辑器实例
+    // Use property code when file changes, otherwise try to preserve state if needed (though usually file change implies code change)
+    // To be safe and simple, we always prioritize the incoming 'code' prop when initializing or re-initializing
+    // unless this is a style/theme update only. 
+    // However, tracking 'precFile' is complex. 
+    // Given the 'code' prop update effect handles synchronization, we can just use 'code' here for safety if we are switching files.
+    // But to fix the specific bug:
+    
+    // Destroy old editor
     if (viewRef.current) {
       viewRef.current.destroy();
       viewRef.current = null;
     }
 
-    // 创建编辑器状态
+    // Create editor state
     const state = EditorState.create({
-      doc: currentCode,
+      doc: code, // Always use the 'code' prop when (re)creating the editor to avoid bleeding content across files
       extensions: [
         basicSetup,
         getLanguageExtension(),
@@ -82,7 +101,7 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
       ],
     });
 
-    // 创建编辑器视图
+    // Create editor view
     const view = new EditorView({
       state,
       parent: editorRef.current,
@@ -90,13 +109,29 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
 
     viewRef.current = view;
 
+    // Trigger search highlight immediately after creation
+    if (searchQuery) {
+      highlightSearchMatch(view, searchQuery);
+    }
+
     return () => {
       if (viewRef.current) {
         viewRef.current.destroy();
         viewRef.current = null;
       }
     };
-  }, [file, readOnly, settings.fontSize, settings.lineHeight, resolvedTheme]);
+  }, [file, readOnly, settings.fontSize, settings.lineHeight, resolvedTheme]); // Removing 'code' from dependency to avoid recreation on typing? No, code is needed for init.
+  // Actually, if 'code' changes, we typically use the update listener (separate effect). 
+  // We don't want to destroy the editor every time 'code' changes (e.g. typing).
+  // The dependency array currently includes 'file'. It does NOT include 'code'.
+  // This is correct behaviour: Only recreate if file/display settings change. Code updates via the other effect.
+
+  // Effect to handle search query changes when the editor is ALREADY open
+  useEffect(() => {
+    if (viewRef.current && searchQuery) {
+      highlightSearchMatch(viewRef.current, searchQuery);
+    }
+  }, [searchQuery]);
 
   // 更新代码内容
   useEffect(() => {

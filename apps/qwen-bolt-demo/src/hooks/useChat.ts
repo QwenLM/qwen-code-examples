@@ -8,9 +8,10 @@ interface UseChatProps {
   sessionId: string;
   setSessionId: (id: string) => void;
   loadAllFiles: (id: string) => Promise<void>;
+  onFileUpdate?: (path: string, content: string) => void;
 }
 
-export function useChat({ settings, sessionId, setSessionId, loadAllFiles }: UseChatProps) {
+export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFileUpdate }: UseChatProps) {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,13 +83,32 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles }: Use
 
           const chunk = decoder.decode(value, { stream: true });
           const lines = chunk.split('\n');
+          let currentEvent = 'message'; // Default event type is message
 
-          for (const line of lines) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // Check for event type
+            if (line.startsWith('event: ')) {
+               currentEvent = line.slice(7).trim();
+               continue;
+            }
+
             if (line.startsWith('data: ')) {
               const jsonStr = line.slice(6);
               if (jsonStr.trim()) {
                 try {
                   const parsed = JSON.parse(jsonStr);
+
+                   // Handle file updates (New Stream-to-Browser Architecture)
+                  if (currentEvent === 'file' && parsed.type === 'file_update') {
+                     if (onFileUpdate) {
+                       onFileUpdate(parsed.path, parsed.content);
+                     }
+                     // Skip normal message processing for file events
+                     currentEvent = 'message'; // Reset
+                     continue;
+                  }
 
                   if (parsed.type === 'session_info') {
                     currentSessionId = parsed.sessionId;
@@ -96,7 +116,8 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles }: Use
                   }
 
                   if (parsed.type === 'file_updated') {
-                    if (currentSessionId) {
+                    // Legacy polling trigger - can be removed eventually
+                    if (currentSessionId && !onFileUpdate) {
                       loadAllFiles(currentSessionId);
                     }
                   }
@@ -112,7 +133,9 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles }: Use
                       }
                     }
 
-                    if (currentSessionId) {
+                    // 优化：如果是流式更新模式 (onFileUpdate 存在)，则不需要最后全量拉取
+                    // 仅当没有流式回调时，作为兜底拉取一次
+                    if (currentSessionId && !onFileUpdate) {
                       setTimeout(() => {
                         loadAllFiles(currentSessionId);
                       }, 1000);

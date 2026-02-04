@@ -12,6 +12,13 @@ export function useFiles(initialSessionId: string = '') {
   const [activeFile, setActiveFile] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>(initialSessionId);
 
+  const updateFile = useCallback((path: string, content: string) => {
+      setFiles(prev => ({
+          ...prev,
+          [path]: content
+      }));
+  }, []);
+
   // Recursively collect all file paths
   const collectFilePaths = useCallback((nodes: FileNode[]): string[] => {
     const paths: string[] = [];
@@ -73,6 +80,7 @@ export function useFiles(initialSessionId: string = '') {
     setActiveFile,
     sessionId,
     setSessionId,
-    loadAllFiles
+    loadAllFiles,
+    updateFile
   };
 }

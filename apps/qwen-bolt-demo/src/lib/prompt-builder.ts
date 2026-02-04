@@ -14,12 +14,14 @@ export function buildPrompt(history: HistoryMessage[], message: string, knowledg
    - When asked to create a React project, ALWAYS use **Vite** (@vitejs/plugin-react).
    - NEVER use Create-React-App (react-scripts) as it is deprecated and slow in WebContainer environments.
    - For Vue, use Vite as well.
-   - For styling, prefer Tailwind CSS unless requested otherwise.
+   - **UI Library**: Prefer **Shadcn UI** (Radix UI + Tailwind CSS) patterns for professional components. Use standard 'lucide-react' for icons.
+   - **Styling**: Always use **Tailwind CSS** unless explicitly asked otherwise. Use 'tailwind-merge' and 'clsx' for class manipulation.
 
 2. **Project Structure**:
    - Ensure 'package.json' has a "dev" script: "vite".
-   - Ensure 'index.html' is in the root directory (standard Vite structure), not in 'public/'.
+   - Ensure 'index.html' is in the root directory (standard Vite structure).
    - Use 'src/main.tsx' or 'src/main.jsx' as the entry point.
+   - For Database requests: Suggest **Supabase** (client-side) patterns. If a DB is needed, assume the user will provide a NEXT_PUBLIC_SUPABASE_URL and key, or mock the data if not provided.
 
 3. **Performance**: 
    - Keep initial dependencies minimal to speed up installation.

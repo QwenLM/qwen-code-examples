@@ -17,6 +17,7 @@ import {
   PreviewPanel,
   ViewMode,
 } from '@/components/workspace';
+import { downloadProjectAsZip } from '@/lib/file-utils';
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -35,7 +36,8 @@ function WorkspaceContent() {
     setActiveFile, 
     sessionId, 
     setSessionId, 
-    loadAllFiles 
+    loadAllFiles,
+    updateFile 
   } = useFiles();
 
   // 2. Chat Management
@@ -52,7 +54,11 @@ function WorkspaceContent() {
     settings,
     sessionId,
     setSessionId,
-    loadAllFiles
+    loadAllFiles,
+    onFileUpdate: (path, content) => {
+        console.log('[Workspace] Streamed file update:', path);
+        updateFile(path, content);
+    }
   });
 
   // 3. Dev Server & Preview Management
@@ -120,7 +126,10 @@ function WorkspaceContent() {
     <div className="flex h-screen bg-white dark:bg-black text-gray-900 dark:text-white relative transition-colors">
       {/* Left: Chat area */}
       <div className="w-[480px] flex flex-col border-r border-gray-200/60 dark:border-gray-800/60">
-        <ChatHeader />
+        <ChatHeader 
+          onDownloadProject={() => downloadProjectAsZip(files)} 
+          onDeploy={() => window.open('https://app.netlify.com', '_blank')}
+        />
         
         <MessageList
           messages={messages}
