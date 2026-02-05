@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { query, type SDKUserMessage, type SDKMessage } from '@qwen-code/sdk';
 import { randomUUID } from 'crypto';
-import { mkdir, writeFile, readFile } from 'fs/promises';
+import { mkdir, writeFile, readFile, realpath } from 'fs/promises';
 import { watch, FSWatcher } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -33,8 +33,17 @@ async function* createPromptStream(
 
 // 创建会话工作目录
 async function createSessionWorkspace(sessionId: string): Promise<string> {
-  const workspaceDir = join(tmpdir(), 'qwen-bolt', sessionId);
+  let workspaceDir = join(tmpdir(), 'qwen-bolt', sessionId);
   await mkdir(workspaceDir, { recursive: true });
+  
+  // On macOS, tmpdir() wraps /private/var/..., but sometimes returns /var/...
+  // We resolve the real path to ensure consistency with tool outputs
+  try {
+    workspaceDir = await realpath(workspaceDir);
+  } catch (error) {
+    console.warn('[createSessionWorkspace] Failed to resolve realpath:', error);
+  }
+
   sessionWorkspaces.set(sessionId, workspaceDir);
   console.log('[createSessionWorkspace] Created workspace:', workspaceDir);
   return workspaceDir;
@@ -171,6 +180,10 @@ You can reference, read, or modify these files as needed.
             'file_replace',
             'read_file',
             'shell',
+            'bash',
+            'sh',
+            'run_shell',
+            'execute_shell',
             'search_file',
             'writefile',
             'createfile',
@@ -179,7 +192,9 @@ You can reference, read, or modify these files as needed.
             'list_files',
             'listdir',
             'ls',
-            'run_script'
+            'run_script',
+            'run_command',
+            'execute_command'
           ];
           
           const toolNameLower = toolName.toLowerCase().replace(/[_-]/g, '');
@@ -199,9 +214,17 @@ You can reference, read, or modify these files as needed.
                 if (fieldValue && typeof fieldValue === 'string') {
                   let newPath = fieldValue;
                   
+                  // Normalize: handle both /var and /private/var on macOS
+                  // to avoid "duplicate" file entries or "private/" folder appearing in UI
+                  const cleanWorkspace = workspaceDir.replace(/^\/private/, '');
+                  const cleanPath = newPath.replace(/^\/private/, '');
+
                   // 1. 如果路径包含工作目录（绝对路径），移除它
                   if (newPath.includes(workspaceDir)) {
                     newPath = newPath.replace(workspaceDir, '');
+                  } else if (cleanPath.includes(cleanWorkspace)) {
+                    // Fallback for macOS /private mismatch
+                    newPath = cleanPath.replace(cleanWorkspace, '');
                   }
                   
                   // 2. 移除开头的 / (变为相对路径)
