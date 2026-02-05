@@ -3,6 +3,7 @@ const { parse } = require('url');
 const next = require('next');
 const { Server: SocketIOServer } = require('socket.io');
 const { spawn } = require('child_process');
+const pty = require('node-pty');
 const httpProxy = require('http-proxy');
 const os = require('os');
 
@@ -70,57 +71,80 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log('[Socket.IO] Client connected:', socket.id);
 
-    socket.on('start-terminal', ({ containerId }) => {
+    socket.on('start-terminal', ({ containerId, sessionId }) => {
       console.log('[Socket.IO] Starting terminal for container:', containerId);
 
       try {
-        // 使用 child_process 替代 node-pty（更稳定）
-        let shell, shellArgs;
-        if (process.platform === 'win32') {
-          shell = 'powershell.exe';
-          shellArgs = [];
-        } else {
-          // macOS/Linux - 使用 script 命令创建伪终端
-          shell = '/usr/bin/script';
-          shellArgs = [
-            '-q',  // quiet mode
-            '/dev/null',  // 不保存到文件
-            process.env.SHELL || '/bin/zsh'  // 使用用户的默认 shell
-          ];
+        const platform = process.platform;
+        let cwd = process.cwd();
+        
+        // 尝试切换到会话工作目录
+        if (sessionId) {
+            try {
+                const path = require('path');
+                const fs = require('fs');
+                const os = require('os');
+                const workspaceDir = path.join(os.tmpdir(), 'qwen-bolt', sessionId);
+                
+                if (fs.existsSync(workspaceDir)) {
+                    cwd = workspaceDir;
+                    console.log('[Socket.IO] Switching CWD to workspace:', cwd);
+                } else {
+                     console.log('[Socket.IO] Workspace dir not found, using default CWD:', cwd);
+                }
+            } catch (e) {
+                console.error('[Socket.IO] Error resolving workspace cwd:', e);
+            }
         }
         
-        console.log('[Socket.IO] Using shell:', shell, shellArgs);
-        
-        const terminal = spawn(shell, shellArgs, {
-          cwd: process.env.HOME || process.cwd(),
-          env: {
-            ...process.env,
-            TERM: 'xterm-256color',
-            COLORTERM: 'truecolor',
-          },
-        });
+        let terminal;
+
+        if (platform === 'win32') {
+          // Windows: 使用 PowerShell
+          terminal = spawn('powershell.exe', [], {
+            cwd,
+            env: process.env,
+          });
+          console.log('[Socket.IO] Started PowerShell (Windows)');
+        } else {
+          // macOS/Linux: 使用 Python 的 pty 模块
+          // 这是一个完全使用标准库的方案，不需要编译原生模块
+          // -u 参数强制 python 使用无缓冲 I/O，这对于实时终端至关重要
+          const shell = process.env.SHELL || '/bin/zsh';
+          
+          // 修改 Prompt 环境变量，隐藏长路径，只显示当前目录名或自定义提示符
+          // 注意：不同 Shell 配置 Prompt 的环境变量不同，这里主要针对 Zsh/Bash
+          const env = {
+              ...process.env,
+              TERM: 'xterm-256color',
+              // 尝试覆盖 PS1 环境变量以简化路径显示
+              // \W: basename of cwd, \$: prompt char
+              PS1: '\\W \\$ ', 
+          };
+          
+          const pythonScript = `import pty; pty.spawn("${shell}")`;
+          
+          console.log('[Socket.IO] Starting Python PTY bridge for:', shell);
+          
+          terminal = spawn('python3', ['-u', '-c', pythonScript], {
+            cwd,
+            env
+          });
+        }
 
         terminals.set(socket.id, terminal);
-
-        // 发送终端就绪事件
         socket.emit('terminal-ready');
 
-        // 监听标准输出
+        // 处理输出 (PTY -> Socket)
         terminal.stdout.on('data', (data) => {
-          const output = data.toString();
-          socket.emit('output', output);
+          socket.emit('output', data.toString());
           
-          // 检测开发服务器启动
+          // 顺便检测 dev server
+          const output = data.toString();
           const detection = detectDevServer(output);
           if (detection.detected && detection.port) {
             console.log(`[Socket.IO] Detected ${detection.framework} dev server on port ${detection.port}`);
-            
-            devServers.set(containerId, {
-              port: detection.port,
-              framework: detection.framework,
-            });
-            
-            // 通知前端开发服务器已启动
+            devServers.set(containerId, { port: detection.port, framework: detection.framework });
             socket.emit('dev-server-started', {
               port: detection.port,
               framework: detection.framework,
@@ -129,41 +153,47 @@ app.prepare().then(() => {
           }
         });
 
-        // 监听标准错误
+        // 错误处理
         terminal.stderr.on('data', (data) => {
+          console.error('[Terminal Stderr]:', data.toString());
           socket.emit('output', data.toString());
         });
 
-        // 监听进程退出
         terminal.on('exit', (code) => {
-          console.log('[Socket.IO] Terminal exited with code:', code);
+          console.log('[Socket.IO] Terminal process exited:', code);
           terminals.delete(socket.id);
           socket.emit('output', `\r\n[Process exited with code ${code}]\r\n`);
         });
 
-        // 监听错误
-        terminal.on('error', (error) => {
-          console.error('[Socket.IO] Terminal error:', error);
-          socket.emit('output', `\r\n[Terminal error: ${error.message}]\r\n`);
+        terminal.on('error', (err) => {
+             console.error('[Socket.IO] Failed to spawn terminal:', err);
+             socket.emit('output', `\r\n[Error spawning terminal. ensure python3 is installed: ${err.message}]\r\n`);
         });
 
-        console.log('[Socket.IO] Terminal started successfully');
       } catch (error) {
-        console.error('[Socket.IO] Error starting terminal:', error);
-        socket.emit('output', `\r\n[Error starting terminal: ${error.message}]\r\n`);
+        console.error('[Socket.IO] Setup error:', error);
+        socket.emit('output', `\r\n[Setup Error: ${error.message}]\r\n`);
       }
     });
 
+
+
     socket.on('input', (data) => {
       const terminal = terminals.get(socket.id);
-      if (terminal && terminal.stdin) {
-        terminal.stdin.write(data);
+      if (terminal) {
+          // 将输入直接写入到 Python 桥接进程的标准输入
+          // Python 的 pty.spawn 会自动处理这些输入并转发给 Shell
+          try {
+            terminal.stdin.write(data);
+          } catch(e) {
+             console.error('[Terminal Input Error]:', e);
+          }
       }
     });
 
     socket.on('resize', ({ cols, rows }) => {
-      // child_process 不支持 resize，忽略
-      // 如果需要支持，可以使用 SIGWINCH 信号
+       // Python PTY 桥接模式下很难调整大小，我们可以尝试发送 SIGWINCH 但需要 native 模块
+       // 暂时忽略 resize，保证核心输入输出可用
     });
 
     socket.on('disconnect', () => {

@@ -41,7 +41,7 @@ const DEFAULT_SETTINGS: ProjectSettings = {
     authType: 'qwen-oauth',
     apiKey: '',
     baseUrl: 'https://api.openai.com/v1',
-    model: 'qwen3-coder-plus',
+    model: 'qwen-coder-plus',
   },
 };
 

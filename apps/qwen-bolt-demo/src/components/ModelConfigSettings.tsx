@@ -135,11 +135,11 @@ export function ModelConfigSettings() {
                   className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 dark:text-gray-100"
                 >
                   <optgroup label="Qwen Models">
-                    <option value="qwen3-coder-plus">Qwen3 Coder Plus - Most capable coding model</option>
-                    <option value="qwen3-coder-turbo">Qwen3 Coder Turbo - Fast and efficient</option>
-                    <option value="qwen3-plus">Qwen3 Plus - General purpose</option>
-                    <option value="qwen3-turbo">Qwen3 Turbo - Balanced performance</option>
-                    <option value="qwen3-max">Qwen3 Max - Maximum capability</option>
+                    <option value="qwen-coder-plus">Qwen Coder Plus - Most capable coding model</option>
+                    <option value="qwen-coder-turbo">Qwen Coder Turbo - Fast and efficient</option>
+                    <option value="qwen-plus">Qwen Plus - General purpose</option>
+                    <option value="qwen-turbo">Qwen Turbo - Balanced performance</option>
+                    <option value="qwen-max">Qwen Max - Maximum capability</option>
                   </optgroup>
                 </select>
               </div>

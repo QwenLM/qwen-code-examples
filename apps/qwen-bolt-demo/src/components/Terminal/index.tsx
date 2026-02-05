@@ -9,9 +9,11 @@ interface TerminalProps {
   containerId: string;
   socketUrl: string;
   onDevServerDetected?: (info: { port: number; framework: string; proxyUrl: string }) => void;
+  theme?: 'light' | 'dark';
+  sessionId?: string;
 }
 
-const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl, onDevServerDetected }, ref) => {
+const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl, onDevServerDetected, theme = 'dark', sessionId }, ref) => {
   const xtermRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<any>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -48,7 +50,15 @@ const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl,
       const term = new XTerm({
         fontSize: 14,
         cursorBlink: true,
-        theme: { background: '#1e1e1e' },
+        theme: theme === 'light' ? {
+          background: '#ffffff',
+          foreground: '#333333',
+          cursor: '#333333',
+          selectionBackground: 'rgba(0, 0, 0, 0.1)',
+        } : { 
+          background: '#1e1e1e',
+          foreground: '#ffffff',
+        },
       });
 
       const fitAddon = new FitAddon();
@@ -74,7 +84,7 @@ const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl,
 
       socket.on('connect', () => {
         console.log('[Terminal] Connected to WebSocket');
-        socket.emit('start-terminal', { containerId });
+        socket.emit('start-terminal', { containerId, sessionId });
         handleConnected();
       });
 
@@ -166,7 +176,7 @@ const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl,
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      <div className="flex-1 overflow-y-auto rounded-b-lg bg-[#1e1e1e] p-2">
+      <div className={`flex-1 overflow-y-auto rounded-b-lg p-2 ${theme === 'light' ? 'bg-white' : 'bg-[#1e1e1e]'}`}>
         <div className="h-full w-full min-w-0" ref={xtermRef} />
         {disconnected && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
