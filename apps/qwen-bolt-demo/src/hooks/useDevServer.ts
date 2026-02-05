@@ -125,12 +125,16 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
       });
 
       // Handle exit
-      devProcess.exit.then((code) => {
-        if (code !== 0 && !previewUrl) {
+      devProcess.exit.then((code: number) => {
+        // If we killed it manually (isStartingServer might be false or devServer might be null), ignore error
+        // But here we check code
+        if (code !== 0 && !previewUrl && isStartingServer) {  // Only report error if we were EXPECTING it to start
            const dir = 'npm run dev exited';
            setServerError(dir);
            setDevServerLogs(prev => [...prev, `[WebContainer Error] ${dir} with code ${code}`]);
            setIsStartingServer(false);
+        } else if (code === 0 || code === 143 || code === 137) { // 143/137 are typical kill signals
+            setDevServerLogs(prev => [...prev, '[WebContainer] Server stopped.']);
         }
       });
 
@@ -140,7 +144,29 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
       setDevServerLogs(prev => [...prev, `[Error] ${error.message}`]);
       setIsStartingServer(false);
     }
-  }, [webcontainer, isStartingServer, files]);
+  }, [webcontainer, isStartingServer, files, previewUrl]);
+
+  const stopDevServer = useCallback(() => {
+    if (devProcessRef.current) {
+      try {
+        devProcessRef.current.kill();
+      } catch (e) {
+        console.error('Failed to kill dev process', e);
+      }
+      devProcessRef.current = null;
+    }
+    setDevServer(null);
+    setPreviewUrl('');
+    setIsStartingServer(false);
+  }, []);
+
+  const restartDevServer = useCallback(async () => {
+    stopDevServer();
+    // Use setTimeout to ensure state clears before restarting
+    setTimeout(() => {
+        startDevServer();
+    }, 100);
+  }, [stopDevServer, startDevServer]);
 
   const refreshPreview = useCallback(() => {
     // In WebContainer, usually just reloading the iframe is enough, 
@@ -148,10 +174,11 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
     // Changing the URL slightly might help.
     if (previewUrl) {
        // WebContainer URLs don't support query params the same way always, but usually safe.
-       // setPreviewUrl(prev => ...); 
-       // Actually simpler: re-set it to trigger iframe update
+       // setPreviewUrl(prev => prev); // Trigger re-render?
+       // Actually the PreviewPanel handles iframe reload if we expose a ref or method.
+       // For now, let's just re-set the URL to trigger effect potentially?
        const current = previewUrl;
-       setPreviewUrl('');
+       setPreviewUrl(''); 
        setTimeout(() => setPreviewUrl(current), 10);
     }
   }, [previewUrl]);
@@ -165,8 +192,9 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
     serverError,
     devServerLogs,
     startDevServer,
+    stopDevServer,
+    restartDevServer,
     refreshPreview,
-    setDevServerLogs,
     isWebContainerLoading,
     webContainerError
   };

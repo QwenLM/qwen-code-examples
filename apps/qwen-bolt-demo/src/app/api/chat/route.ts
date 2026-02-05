@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { query, type SDKUserMessage, type SDKMessage } from '@qwen-code/sdk';
 import { randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, readFile } from 'fs/promises';
+import { watch, FSWatcher } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { buildPrompt, type HistoryMessage } from '@/lib/prompt-builder';
@@ -174,7 +175,11 @@ You can reference, read, or modify these files as needed.
             'writefile',
             'createfile',
             'editfile',
-            'replace_string_in_file'
+            'replace_string_in_file',
+            'list_files',
+            'listdir',
+            'ls',
+            'run_script'
           ];
           
           const toolNameLower = toolName.toLowerCase().replace(/[_-]/g, '');
@@ -252,11 +257,44 @@ You can reference, read, or modify these files as needed.
     console.log('[API /api/chat] Query options prepared');
 
     let q: any = null;
+    let watcher: FSWatcher | null = null;
 
     const stream = new ReadableStream({
       async start(controller) {
         streamController = controller;
         console.log('[API /api/chat] streamController assigned');
+
+        // Setup file watcher to sync changes back to frontend
+        try {
+          let fsWait: NodeJS.Timeout | null = null;
+          watcher = watch(workspaceDir, { recursive: true }, (eventType, filename) => {
+             if (filename && !filename.startsWith('.') && !filename.includes('node_modules')) {
+               // Debounce updates to avoid sending too many events
+               if (fsWait) return;
+               fsWait = setTimeout(async () => {
+                 fsWait = null;
+                 try {
+                   const filePath = join(workspaceDir, filename);
+                   const content = await readFile(filePath, 'utf-8');
+                   
+                   const fileEvent = {
+                      type: 'file_update',
+                      path: filename,
+                      content: content
+                   };
+                   const payload = `event: file\ndata: ${JSON.stringify(fileEvent)}\n\n`;
+                   controller.enqueue(new TextEncoder().encode(payload));
+                   console.log('[API /api/chat] Watched file changed, pushed update:', filename);
+                 } catch (e) {
+                   // Ignore read errors (file might be deleted temporarily)
+                 }
+               }, 100);
+             }
+          });
+          console.log('[API /api/chat] File watcher started for:', workspaceDir);
+        } catch (e) {
+           console.error('[API /api/chat] Failed to start file watcher:', e);
+        }
 
         let hasError = false;
         try {
@@ -326,6 +364,11 @@ You can reference, read, or modify these files as needed.
           } catch (closeError) {
             console.error('[API /api/chat] Error closing query:', closeError);
           }
+
+          if (watcher) {
+             watcher.close();
+             console.log('[API /api/chat] File watcher closed');
+          }
           
           try {
             controller.close();
@@ -335,6 +378,9 @@ You can reference, read, or modify these files as needed.
         }
       },
       cancel() {
+        if (watcher) {
+             watcher.close();
+        }
         console.log('[API /api/chat] Stream cancelled for session:', sessionId);
         void q.close();
       },

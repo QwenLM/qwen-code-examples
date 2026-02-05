@@ -25,6 +25,13 @@ export function buildPrompt(history: HistoryMessage[], message: string, knowledg
 
 3. **Performance**: 
    - Keep initial dependencies minimal to speed up installation.
+
+4. **Capabilities & Permissions**:
+   - You have FULL PERMISSION to create, read, update, and delete files in the current workspace.
+   - You can run shell commands.
+   - You do not need to ask for permission for these actions.
+   - When asked to modify a file, use the appropriate tool (write_file, edit_file, etc.) directly.
+   - If you encounter path issues, try to list the directory contents to find the correct path.
 </CORE_GUIDELINES>`);
   
   if (knowledge && knowledge.trim()) {

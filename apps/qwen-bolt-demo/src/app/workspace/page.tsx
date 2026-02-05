@@ -64,13 +64,12 @@ function WorkspaceContent() {
   // 3. Dev Server & Preview Management
   const {
     previewUrl,
-    setPreviewUrl,
     devServer,
-    setDevServer,
     isStartingServer,
     serverError,
     devServerLogs,
     startDevServer,
+    restartDevServer, // Add this
     refreshPreview,
     isWebContainerLoading,
     webContainerError
@@ -143,7 +142,16 @@ function WorkspaceContent() {
           attachedFiles={attachedFiles}
           onInputChange={setInput}
           onSend={() => sendMessage()}
-          onFilesAttached={(newFiles) => setAttachedFiles(prev => [...prev, ...newFiles])}
+          onFilesAttached={(newFiles) => {
+            setAttachedFiles(prev => [...prev, ...newFiles]);
+            // Also update the workspace files so they are visible in the code panel
+            newFiles.forEach(file => {
+               // Only update if it's not a folder placeholder (though FileAttachment distincts folder vs file, the logic returns files)
+               if (!file.isFolder || (file.isFolder && file.content)) { 
+                   updateFile(file.path, file.content); 
+               }
+            });
+          }}
           onFileRemoved={(fileId) => setAttachedFiles(prev => prev.filter(f => f.id !== fileId))}
           onFolderRemoved={(folderName) => setAttachedFiles(prev => prev.filter(f => f.folderName !== folderName))}
         />
@@ -183,6 +191,7 @@ function WorkspaceContent() {
                 hasFiles={Object.keys(files).length > 0}
                 onStartServer={startDevServer}
                 onRefresh={refreshPreview}
+                onRestart={restartDevServer}
                 onOpenInNewTab={handleOpenInNewTab}
               />
             )}

@@ -1,6 +1,7 @@
 'use client';
 
-import { Code2, Maximize2, RotateCcw, Sparkles } from 'lucide-react';
+import { Code2, Maximize2, Minimize2, RotateCcw, Sparkles, RefreshCw, Power } from 'lucide-react';
+import { useState } from 'react';
 
 interface DevServer {
   port: number;
@@ -17,6 +18,7 @@ interface PreviewPanelProps {
   hasFiles: boolean;
   onStartServer: () => void;
   onRefresh: () => void;
+  onRestart?: () => void;
   onOpenInNewTab: () => void;
 }
 
@@ -29,17 +31,27 @@ export function PreviewPanel({
   hasFiles,
   onStartServer,
   onRefresh,
+  onRestart,
   onOpenInNewTab,
 }: PreviewPanelProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const showStartButton = !previewUrl && sessionId && hasFiles;
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const containerClass = isFullscreen 
+    ? "fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col" 
+    : "w-full flex flex-col bg-gray-50 dark:bg-gray-900 h-full relative";
+
   return (
-    <div className="w-full flex flex-col bg-gray-50 dark:bg-gray-900 h-full">
+    <div className={containerClass}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Preview</h2>
-          {devServer && (
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Preview {isFullscreen ? '(Fullscreen)' : ''}</h2>
+          {devServer && !isFullscreen && ( // Hide details in fullscreen to save space or keep neat
             <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
               {devServer.framework} • Port {devServer.port}
             </span>
@@ -68,19 +80,28 @@ export function PreviewPanel({
           )}
           {previewUrl && (
             <>
+              {onRestart && (
+                <button
+                  onClick={onRestart}
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-red-500/70 hover:text-red-600"
+                  title="Restart Dev Server"
+                >
+                  <Power className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={onRefresh}
                 className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Refresh Preview"
+                title="Refresh Preview Page"
               >
                 <RotateCcw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
               <button
-                onClick={onOpenInNewTab}
+                onClick={toggleFullscreen}
                 className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Open in New Tab"
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
-                <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                {isFullscreen ? <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" /> : <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
               </button>
             </>
           )}

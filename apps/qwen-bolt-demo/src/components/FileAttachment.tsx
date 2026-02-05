@@ -41,8 +41,23 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
       folderName = firstPath.split('/')[0];
     }
 
+    const MAX_SIZE = 3 * 1024 * 1024; // 3MB Limit (Total or per file? User said "upload existing project... only allow 3M". Usually means total or per file. Let's assume individual file safety first, or maybe filter out large files?)
+
+    // Let's filter first to avoid reading large files
+    const validSizeFiles = fileArray.filter(file => {
+        if (file.size > MAX_SIZE) {
+            console.warn(`[FileAttachment] File ${file.name} (size: ${file.size}) exceeds limit of ${MAX_SIZE} bytes. Skipped.`);
+            return false;
+        }
+        return true;
+    });
+
+    if (validSizeFiles.length < fileArray.length) {
+        alert(`Some files were skipped because they exceed the 3MB size limit.`);
+    }
+
     const uploadedFiles = await Promise.all(
-      fileArray.map(async (file) => {
+      validSizeFiles.map(async (file) => {
         try {
           const content = await file.text();
           // Use webkitRelativePath for folder uploads, otherwise use file.name
@@ -65,7 +80,22 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
     );
 
     // Filter out failed uploads
-    const validFiles = uploadedFiles.filter((f): f is AttachedFile => f !== null);
+    let validFiles = uploadedFiles.filter((f): f is AttachedFile => f !== null);
+
+    // Flatten logic: If all files share the same top-level folder, strip it
+    if (validFiles.length > 0 && isFolder && folderName) {
+         const commonPrefix = `${folderName}/`;
+         // Double check if ALL files start with this prefix (they should if it was a folder upload)
+         const allHavePrefix = validFiles.every(f => f.path.startsWith(commonPrefix));
+         
+         if (allHavePrefix) {
+             validFiles = validFiles.map(f => ({
+                 ...f,
+                 path: f.path.slice(commonPrefix.length), // Remove the "MyApp/" prefix
+             }));
+             console.log(`[FileAttachment] Flattened project structure by removing prefix: ${commonPrefix}`);
+         }
+    }
     
     if (validFiles.length > 0) {
       onFilesAttached(validFiles);

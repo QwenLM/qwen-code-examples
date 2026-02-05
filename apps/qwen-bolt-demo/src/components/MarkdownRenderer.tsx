@@ -26,7 +26,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           ),
           // Paragraphs
           p: ({ children }) => (
-            <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+            <p className="mb-2 last:mb-0 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">{children}</p>
           ),
           // Lists
           ul: ({ children }) => (
@@ -36,7 +36,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="leading-relaxed">{children}</li>
+            <li className="leading-relaxed whitespace-pre-wrap break-words">{children}</li>
           ),
           // Code
           code: ({ className, children, ...props }) => {
