@@ -18,6 +18,7 @@ export function ModelConfigSettings() {
   }, [settings.modelConfig, isOpen]);
 
   const handleSave = () => {
+    console.log('[ModelConfigSettings] Saving config:', modelConfig);
     updateModelConfig(modelConfig);
     setIsOpen(false);
   };
@@ -67,7 +68,7 @@ export function ModelConfigSettings() {
                       name="authType"
                       value="qwen-oauth"
                       checked={modelConfig.authType === 'qwen-oauth'}
-                      onChange={(e) => setModelConfig(prev => ({ ...prev, authType: e.target.value as 'qwen-oauth' }))}
+                      onChange={() => setModelConfig(prev => ({ ...prev, authType: 'qwen-oauth' }))}
                       className="w-4 h-4 text-blue-600"
                     />
                     <div className="flex-1">
@@ -81,7 +82,7 @@ export function ModelConfigSettings() {
                       name="authType"
                       value="openai-api-key"
                       checked={modelConfig.authType === 'openai-api-key'}
-                      onChange={(e) => setModelConfig(prev => ({ ...prev, authType: e.target.value as 'openai-api-key' }))}
+                      onChange={() => setModelConfig(prev => ({ ...prev, authType: 'openai-api-key' }))}
                       className="w-4 h-4 text-blue-600"
                     />
                     <div className="flex-1">

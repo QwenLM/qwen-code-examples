@@ -269,8 +269,13 @@ export async function POST(request: NextRequest) {
     const frontendAuthType = modelConfig?.authType || 'qwen-oauth';
     const sdkAuthType = frontendAuthType === 'openai-api-key' ? 'openai' : 'qwen-oauth';
     
+    console.log('[Chat API] Configuration:', {
+      frontendAuthType,
+      sdkAuthType,
+      modelConfig
+    });
+
     const queryOptions: any = {
-      pathToQwenExecutable: 'qwen',
       includePartialMessages: true,
       debug: true,
       logLevel: 'debug',
@@ -279,7 +284,13 @@ export async function POST(request: NextRequest) {
     };
 
     if (modelConfig?.model) {
-      queryOptions.model = modelConfig.model;
+      // For OpenAI/Compatible endpoints, use the specific model name
+      // For Qwen OAuth (official backend), use 'coder-model' alias or specific model if supported
+      if (sdkAuthType === 'openai') {
+        queryOptions.model = modelConfig.model;
+      } else {
+        queryOptions.model = 'coder-model';
+      }
     }
 
     if (frontendAuthType === 'openai-api-key' && modelConfig) {

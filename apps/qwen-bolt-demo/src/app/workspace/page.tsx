@@ -22,7 +22,7 @@ import { downloadProjectAsZip } from '@/lib/file-utils';
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const initialPrompt = searchParams.get('prompt') || '';
-  const { settings } = useProject();
+  const { settings, isLoaded } = useProject();
   
   // UI state
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
@@ -63,7 +63,7 @@ function WorkspaceContent() {
 
   // 3. Dev Server & Preview Management
   const {
-    previewUrl,
+    previewUrl: initialPreviewUrl,
     devServer,
     isStartingServer,
     serverError,
@@ -74,6 +74,25 @@ function WorkspaceContent() {
     isWebContainerLoading,
     webContainerError
   } = useDevServer(sessionId, files);
+
+  // Add local previewUrl state to allow updating previewUrl
+  const [previewUrl, setPreviewUrl] = useState(initialPreviewUrl);
+
+  useEffect(() => {
+    if (initialPreviewUrl !== previewUrl) {
+      setPreviewUrl(initialPreviewUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPreviewUrl]);
+
+  // Add setDevServer state to allow updating devServer info
+  const [localDevServer, setDevServer] = useState(devServer);
+  useEffect(() => {
+    if (devServer !== localDevServer) {
+      setDevServer(devServer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devServer]);
 
   // 4. Resizable Terminal Panel
   const { 
@@ -100,11 +119,13 @@ function WorkspaceContent() {
 
   // Auto-send initial prompt
   useEffect(() => {
-    if (initialPrompt && messages.length === 0 && !hasInitializedRef.current) {
+    // Only send if settings are loaded to ensure we have the correct model config auth keys
+    if (initialPrompt && messages.length === 0 && !hasInitializedRef.current && isLoaded) {
       hasInitializedRef.current = true;
+      console.log('[Workspace] Sending initial prompt with loaded settings:', settings.modelConfig);
       sendMessage(initialPrompt);
     }
-  }, [initialPrompt, messages.length, sendMessage]);
+  }, [initialPrompt, messages.length, sendMessage, isLoaded, settings]);
 
   // Handle open in new tab
   const handleOpenInNewTab = () => {
@@ -127,7 +148,6 @@ function WorkspaceContent() {
       <div className="w-[480px] flex flex-col border-r border-gray-200/60 dark:border-gray-800/60">
         <ChatHeader 
           onDownloadProject={() => downloadProjectAsZip(files)} 
-          onDeploy={() => window.open('https://app.netlify.com', '_blank')}
         />
         
         <MessageList

@@ -26,6 +26,7 @@ export interface ProjectSettings {
 
 interface ProjectContextType {
   settings: ProjectSettings;
+  isLoaded: boolean;
   updateKnowledge: (knowledge: string) => void;
   addFiles: (files: UploadedFile[]) => void;
   removeFile: (fileId: string) => void;
@@ -51,18 +52,26 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<ProjectSettings>(DEFAULT_SETTINGS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load settings from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
+        console.log('[ProjectContext] Loading settings from localStorage:', stored);
         const parsed = JSON.parse(stored);
-        setSettings(parsed);
+        // Merge with default settings to ensure new fields are present
+        setSettings(prev => ({
+            ...prev,
+            ...parsed,
+            modelConfig: { ...prev.modelConfig, ...parsed.modelConfig }
+        }));
       } catch (e) {
         console.error('Failed to parse project settings:', e);
       }
     }
+    setIsLoaded(true);
   }, []);
 
   // Save settings to localStorage whenever they change
@@ -113,13 +122,14 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo(() => ({
     settings,
+    isLoaded,
     updateKnowledge,
     addFiles,
     removeFile,
     clearAllFiles,
     updateModelConfig,
     resetSettings,
-  }), [settings, updateKnowledge, addFiles, removeFile, clearAllFiles, updateModelConfig, resetSettings]);
+  }), [settings, isLoaded, updateKnowledge, addFiles, removeFile, clearAllFiles, updateModelConfig, resetSettings]);
 
   return (
     <ProjectContext.Provider value={value}>

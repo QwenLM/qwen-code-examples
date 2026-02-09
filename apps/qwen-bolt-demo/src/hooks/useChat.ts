@@ -1,17 +1,23 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Message, AttachedFile } from '@/components/workspace';
 import type { ProjectSettings } from '@/contexts/ProjectContext';
 import { useToken } from '@/contexts/TokenContext';
+import { useProject } from '@/contexts/ProjectContext';
 
 interface UseChatProps {
-  settings: ProjectSettings;
+  settings: ProjectSettings; // Kept for API compatibility, but we'll prefer Context directly
   sessionId: string;
   setSessionId: (id: string) => void;
   loadAllFiles: (id: string) => Promise<void>;
   onFileUpdate?: (path: string, content: string) => void;
 }
 
-export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFileUpdate }: UseChatProps) {
+export function useChat({ settings: propsSettings, sessionId, setSessionId, loadAllFiles, onFileUpdate }: UseChatProps) {
+  // Directly access Context to ensure we always have the latest state, bypassing any prop propagation delays
+  const { settings: contextSettings } = useProject();
+  // Prefer context settings if available (which it should be), fallback to props
+  const settings = contextSettings || propsSettings;
+
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,9 +27,23 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFil
   const { addTokenUsage } = useToken();
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Use a ref to track the latest settings to avoid closure staleness issues
+  const settingsRef = useRef(settings);
+  useEffect(() => {
+    settingsRef.current = settings;
+    console.log('[useChat] Settings updated in ref (from Context):', settings.modelConfig);
+  }, [settings]);
+
   const sendMessage = useCallback(async (messageText?: string) => {
     const textToSend = messageText || input.trim();
     if (!textToSend || isLoading) return;
+
+    // Use current settings from ref
+    const currentSettings = settingsRef.current;
+    
+    // Double check directly from context if possible (though ref should be synced)
+    console.log('[useChat] sendMessage called. Current ref config:', currentSettings.modelConfig);
+
 
     const currentAttachedFiles = [...attachedFiles];
 
@@ -45,7 +65,7 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFil
 
     try {
       const allUploadedFiles = [
-        ...settings.uploadedFiles,
+        ...currentSettings.uploadedFiles,
         ...attachedFiles.map(f => ({
           id: f.id,
           name: f.name,
@@ -56,6 +76,8 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFil
         })),
       ];
 
+      console.log('[useChat] Sending request with config:', currentSettings.modelConfig);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,8 +86,8 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFil
           history: messages,
           sessionId: sessionId || undefined,
           uploadedFiles: allUploadedFiles,
-          knowledge: settings.knowledge,
-          modelConfig: settings.modelConfig,
+          knowledge: currentSettings.knowledge,
+          modelConfig: currentSettings.modelConfig,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -76,14 +98,19 @@ export function useChat({ settings, sessionId, setSessionId, loadAllFiles, onFil
         let accumulatedResponse = '';
         let hasReceivedResult = false;
         let currentSessionId = sessionId;
+        let buffer = '';
+        let currentEvent = 'message';
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          let currentEvent = 'message'; // Default event type is message
+          buffer += chunk;
+          
+          const lines = buffer.split('\n');
+          // Keep the last line in the buffer as it might be incomplete
+          buffer = lines.pop() || '';
 
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
