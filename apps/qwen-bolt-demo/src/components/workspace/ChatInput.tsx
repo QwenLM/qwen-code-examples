@@ -4,6 +4,8 @@ import { KeyboardEvent, useEffect, useRef } from 'react';
 import { Send, X, File, Folder } from 'lucide-react';
 import { FileAttachment } from '@/components/FileAttachment';
 import { TokenDisplay } from '@/components/TokenDisplay';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface AttachedFile {
   id: string;
@@ -114,6 +116,7 @@ export function ChatInput({
   onFileRemoved,
   onFolderRemoved,
 }: ChatInputProps) {
+  const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -154,19 +157,21 @@ export function ChatInput({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="What would you like to build today?"
+          placeholder={t('chat.placeholder')}
           disabled={isLoading}
           className="w-full px-6 py-5 pr-14 bg-white dark:bg-gray-900 border border-gray-300/60 dark:border-gray-700/60 rounded-2xl resize-none focus:outline-none focus:ring-1 focus:ring-blue-500/50 text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all"
           rows={4}
           style={{ minHeight: '110px' }}
         />
-        <button
-          onClick={onSend}
-          disabled={isLoading || !input.trim()}
-          className="absolute right-3 bottom-3 p-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed rounded-full transition-all flex items-center justify-center shadow-sm"
-        >
-          <Send className="w-4 h-4 text-white" />
-        </button>
+        <Tooltip content={t('chat.send')} side="top">
+          <button
+            onClick={onSend}
+            disabled={isLoading || !input.trim()}
+            className="absolute right-3 bottom-3 p-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed rounded-full transition-all flex items-center justify-center shadow-sm"
+          >
+            <Send className="w-4 h-4 text-white" />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

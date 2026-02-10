@@ -5,6 +5,7 @@ import { MultiFileCodeRendererProps } from './types';
 import { FileTree } from './FileTree';
 import { CodeEditorPanel } from './CodeEditorPanel';
 import { PanelLeft, GripVertical, Copy, Check } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export const MultiFileCodeRenderer: React.FC<
   MultiFileCodeRendererProps & { tabBarExtraContent?: React.ReactNode; sessionId?: string }
@@ -163,28 +164,30 @@ export const MultiFileCodeRenderer: React.FC<
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 px-4 py-2">
           <div className="flex items-center gap-2">
-            <button
-              className="p-1 hover:bg-gray-300 dark:hover:bg-gray-700 rounded transition-colors"
-              onClick={() => setSidebarOpen((v) => !v)}
-              aria-label={sidebarOpen ? 'Collapse file tree' : 'Expand file tree'}
-            >
-              <PanelLeft
-                className={`h-4 w-4 text-gray-400 transition-transform ${
-                  sidebarOpen ? '' : 'rotate-180'
-                }`}
-              />
-            </button>
+            <Tooltip content={sidebarOpen ? 'Collapse file tree' : 'Expand file tree'}>
+              <button
+                className="p-1 hover:bg-gray-300 dark:hover:bg-gray-700 rounded transition-colors"
+                onClick={() => setSidebarOpen((v) => !v)}
+              >
+                <PanelLeft
+                  className={`h-4 w-4 text-gray-400 transition-transform ${
+                    sidebarOpen ? '' : 'rotate-180'
+                  }`}
+                />
+              </button>
+            </Tooltip>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{activeFile}</span>
           </div>
 
           <div className="flex items-center gap-2">
-             <button
-              onClick={handleCopy}
-              className="p-1 hover:bg-gray-300 dark:hover:bg-gray-700 rounded transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              title="Copy code"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-            </button>
+            <Tooltip content={copied ? "Copied" : "Copy code"}>
+              <button
+                onClick={handleCopy}
+                className="p-1 hover:bg-gray-300 dark:hover:bg-gray-700 rounded transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </Tooltip>
             {tabBarExtraContent}
           </div>
         </div>

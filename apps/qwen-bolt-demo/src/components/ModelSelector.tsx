@@ -3,6 +3,7 @@
 import { Cpu, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,15 +56,16 @@ export function ModelSelector() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm"
-        title="Select AI Model"
-      >
-        <Cpu className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-300">{displayName}</span>
-        <ChevronDown className="w-3 h-3 text-gray-400" />
-      </button>
+      <Tooltip content="Select AI Model" side="bottom">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm"
+        >
+          <Cpu className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-300">{displayName}</span>
+          <ChevronDown className="w-3 h-3 text-gray-400" />
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <div className="absolute left-0 mt-2 w-80 bg-gray-900 dark:bg-gray-900 border border-gray-700 dark:border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden">

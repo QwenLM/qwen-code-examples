@@ -2,6 +2,7 @@
 
 import { Paperclip, File, Folder, X } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface AttachedFile {
   id: string;
@@ -116,13 +117,14 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
   return (
     <div className="relative">
       {/* Attach button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
-        title="Attach files"
-      >
-        <Paperclip className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-      </button>
+      <Tooltip content="Attach files">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          <Paperclip className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        </button>
+      </Tooltip>
 
       {/* Popover */}
       {isOpen && (

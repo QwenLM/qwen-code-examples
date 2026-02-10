@@ -4,6 +4,7 @@ import { Sliders, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import type { ModelConfig } from '@/contexts/ProjectContext';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ModelConfigSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,14 +27,15 @@ export function ModelConfigSettings() {
   return (
     <>
       {/* Model Config Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-        aria-label="Model configuration"
-        title="Model Configuration - Configure authentication and model settings"
-      >
-        <Sliders className="w-5 h-5 text-gray-400" />
-      </button>
+      <Tooltip content="Model Configuration" side="bottom">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+          aria-label="Model configuration"
+        >
+          <Sliders className="w-5 h-5 text-gray-400" />
+        </button>
+      </Tooltip>
 
       {/* Model Config Modal */}
       {isOpen && (

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Terminal as TerminalIcon, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const Terminal = dynamic(() => import('./Terminal'), {
   ssr: false,
@@ -100,41 +101,46 @@ export function TerminalPanel({ devServerLogs = [], sessionId, isOpen = true, on
             >
               <TerminalIcon className="w-3 h-3" />
               <span>{terminal.name}</span>
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeTerminal(terminal.id);
-                }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all"
-              >
-                <X className="w-3 h-3" />
-              </span>
+              <Tooltip content="Close Terminal">
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTerminal(terminal.id);
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all"
+                >
+                  <X className="w-3 h-3" />
+                </span>
+              </Tooltip>
             </button>
           ))}
 
           {/* Add terminal button */}
-          <button
-            onClick={addTerminal}
-            disabled={!sessionId}
-            className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded transition-colors ${
-              !sessionId 
-                ? 'opacity-50 cursor-not-allowed text-gray-400' 
-                : 'hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-500'
-            }`}
-            title={sessionId ? "Add Terminal" : "Start a chat to enable terminal"}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          <Tooltip content={sessionId ? "Add Terminal" : "Start a chat to enable terminal"}>
+            <button
+              onClick={addTerminal}
+              disabled={!sessionId}
+              className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded transition-colors ${
+                !sessionId 
+                  ? 'opacity-50 cursor-not-allowed text-gray-400' 
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-500'
+              }`}
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </Tooltip>
         </div>
 
         {/* Hide/Show button */}
         {onToggle && (
-          <button
-            onClick={onToggle}
-            className="flex-shrink-0 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 px-2 transition-colors"
-          >
-            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </button>
+          <Tooltip content={isOpen ? "Hide Terminal" : "Show Terminal"}>
+            <button
+              onClick={onToggle}
+              className="flex-shrink-0 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 px-2 transition-colors"
+            >
+              {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            </button>
+          </Tooltip>
         )}
       </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, Search, X } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { FileTreeProps } from './types';
 import { buildFileTree, getFileIcon, FileNode } from './utils';
 
@@ -179,18 +180,19 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({
       <div className="px-3 py-2 border-b border-gray-300 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">FILES</h3>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => {
-              setIsSearchOpen(!isSearchOpen);
-              if (isSearchOpen) {
-                setSearchQuery('');
-              }
-            }}
-            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors group"
-            title="Search Files"
-          >
-            <Search className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
-          </button>
+          <Tooltip content="Search Files">
+            <button
+              onClick={() => {
+                setIsSearchOpen(!isSearchOpen);
+                if (isSearchOpen) {
+                  setSearchQuery('');
+                }
+              }}
+              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors group"
+            >
+              <Search className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -207,12 +209,14 @@ export const FileTree: React.FC<FileTreeProps & { sessionId?: string }> = ({
               autoFocus
             />
             {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-700 rounded"
-              >
-                <X className="w-3 h-3 text-gray-400" />
-              </button>
+              <Tooltip content="Clear search">
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-700 rounded"
+                >
+                  <X className="w-3 h-3 text-gray-400" />
+                </button>
+              </Tooltip>
             )}
           </div>
         </div>

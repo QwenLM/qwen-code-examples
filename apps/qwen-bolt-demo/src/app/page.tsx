@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Code2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ModelSelector } from '@/components/ModelSelector';
 
 export default function Home() {
@@ -57,6 +58,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-3">
               <ModelSelector />
+              <LanguageSwitcher />
               <ThemeToggle />
             </div>
           </div>
@@ -119,30 +121,30 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-center gap-3 mt-8 opacity-80">
             <button 
               onClick={() => {
-                const prompt = "Create a modern SaaS landing page using React, Tailwind CSS, and Framer Motion. Include a Hero section with a gradient background, Features grid, and a Pricing table.";
+                const prompt = "Create a React project using Vite. The home page should display 'Hello', and the About page should display an introduction to Qwen Code.";
                 router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
               }}
               className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
             >
-              ✨ Landing Page
+              ⚛️ Simple React App
             </button>
             <button 
                onClick={() => {
-                const prompt = "Create a comprehensive Admin Dashboard using Shadcn UI components. Include a sidebar, data charts using Recharts, and a data table with pagination.";
+                const prompt = "Create a simple HTML page with a centered 'Hello World' heading and a gradient background.";
                 router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
               }}
               className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
             >
-              📊 Dashboard
+              🎨 Basic HTML Page
             </button>
              <button 
                onClick={() => {
-                const prompt = "Create a Collaborative Todo App. Use React, Tailwind, and lucid-react. Simulate a Supabase backend for data persistence.";
+                const prompt = "Create a simple Counter app using React and Tailwind CSS. It should have increment, decrement, and reset buttons.";
                 router.push(`/workspace?prompt=${encodeURIComponent(prompt)}`);
               }}
               className="px-4 py-2 text-sm bg-gray-100/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full transition-all text-gray-600 dark:text-gray-300 backdrop-blur-sm"
             >
-              ✅ Todo App (Supabase)
+              🧮 Counter App
             </button>
           </div>
 

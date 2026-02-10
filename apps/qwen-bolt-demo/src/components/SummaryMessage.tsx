@@ -65,12 +65,12 @@ export function SummaryMessage({ content }: SummaryMessageProps) {
   }
   
   return (
-    <div className="bg-gradient-to-br from-green-900/20 to-blue-900/20 rounded-lg p-4 border border-green-700/30">
+    <div className="py-2">
       {/* Summary header with icon */}
       <div className="flex items-start gap-3 mb-3">
-        <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm text-gray-200 font-medium">{title}</p>
+          <p className="text-sm text-gray-900 dark:text-gray-200 font-medium">{title}</p>
         </div>
       </div>
       
@@ -78,7 +78,7 @@ export function SummaryMessage({ content }: SummaryMessageProps) {
       {items.length > 0 && (
         <div className="ml-8 space-y-2 mb-3">
           {items.map((item, index) => (
-            <div key={index} className="text-sm text-gray-300">
+            <div key={index} className="text-sm text-gray-700 dark:text-gray-300">
               {item}
             </div>
           ))}
@@ -87,8 +87,8 @@ export function SummaryMessage({ content }: SummaryMessageProps) {
       
       {/* Conclusion */}
       {conclusion && (
-        <div className="ml-8 mt-3 pt-3 border-t border-gray-700/50">
-          <p className="text-sm text-gray-400">{conclusion}</p>
+        <div className="ml-8 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700/50">
+          <p className="text-sm text-gray-600 dark:text-gray-400">{conclusion}</p>
         </div>
       )}
     </div>

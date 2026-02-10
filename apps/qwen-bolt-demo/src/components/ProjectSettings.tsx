@@ -2,10 +2,13 @@
 
 import { BookOpen, X, Upload, File, Folder, Trash2, Cpu } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useProject } from '@/contexts/ProjectContext';
+import { useTranslation } from 'react-i18next';
 import type { ModelConfig } from '@/contexts/ProjectContext';
 
 export function ProjectSettings() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'files' | 'model'>('knowledge');
   const { settings, updateKnowledge, addFiles, removeFile, clearAllFiles, updateModelConfig, resetSettings } = useProject();
@@ -60,14 +63,15 @@ export function ProjectSettings() {
   return (
     <>
       {/* Settings Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-        aria-label="Project settings"
-        title="Project settings"
-      >
-        <BookOpen className="w-5 h-5 text-gray-400" />
-      </button>
+      <Tooltip content={t('projectSettings.open')}>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+          aria-label="Project settings"
+        >
+          <BookOpen className="w-5 h-5 text-gray-400" />
+        </button>
+      </Tooltip>
 
       {/* Settings Modal */}
       {isOpen && (
@@ -76,14 +80,16 @@ export function ProjectSettings() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Project Settings
+                {t('projectSettings.title')}
               </h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+              <Tooltip content={t('projectSettings.close')}>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </Tooltip>
             </div>
 
             {/* Tabs */}
@@ -96,7 +102,7 @@ export function ProjectSettings() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Knowledge
+                {t('projectSettings.knowledge')}
               </button>
               <button
                 onClick={() => setActiveTab('files')}
@@ -106,7 +112,7 @@ export function ProjectSettings() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Files ({settings.uploadedFiles.length})
+                {t('projectSettings.files')} ({settings.uploadedFiles.length})
               </button>
               <button
                 onClick={() => setActiveTab('model')}
@@ -116,7 +122,7 @@ export function ProjectSettings() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Model
+                {t('projectSettings.model')}
               </button>
             </div>
 
@@ -216,12 +222,14 @@ export function ProjectSettings() {
                                 </p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => removeFile(file.id)}
-                              className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                            <Tooltip content="Remove file">
+                              <button
+                                onClick={() => removeFile(file.id)}
+                                className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </Tooltip>
                           </div>
                         ))}
                       </div>
@@ -340,20 +348,20 @@ export function ProjectSettings() {
                 onClick={resetSettings}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
-                Reset All
+                {t('projectSettings.reset')}
               </button>
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t('projectSettings.cancel')}
                 </button>
                 <button
                   onClick={handleSaveAll}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
                 >
-                  Done
+                  {t('projectSettings.done')}
                 </button>
               </div>
             </div>

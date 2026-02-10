@@ -79,9 +79,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
       const spawnOptions = { 
         cwd: projectRoot === '.' ? '/' : projectRoot,
         env: { 
-            CI: 'true',
-            npm_config_shell: 'jsh',
-            SHELL: '/bin/jsh' 
+            CI: 'true'
         }
       };
 
@@ -112,7 +110,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
             setDevServerLogs(prev => [...prev, '[WebContainer] Installing dependencies... (This may take a few minutes for the first run)']);
             
             // Using 'npm install' with optimizations
-            const installProcess = await webcontainer.spawn('npm', ['install', '--no-audit', '--no-fund', '--prefer-offline'], spawnOptions);
+            const installProcess = await webcontainer.spawn('npm', ['install', '--no-audit', '--no-fund', '--prefer-offline', '--no-optional'], spawnOptions);
             installProcessRef.current = installProcess;
             
             // Stream output

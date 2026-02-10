@@ -3,6 +3,7 @@
 import { Settings, X } from 'lucide-react';
 import { useState } from 'react';
 import { useEditor } from '@/contexts/EditorContext';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function EditorSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,14 +12,15 @@ export function EditorSettings() {
   return (
     <>
       {/* Settings Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-        aria-label="Editor settings"
-        title="Editor Settings - Configure font size and line height"
-      >
-        <Settings className="w-5 h-5 text-gray-400" />
-      </button>
+      <Tooltip content="Editor Settings" side="bottom">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+          aria-label="Editor settings"
+        >
+          <Settings className="w-5 h-5 text-gray-400" />
+        </button>
+      </Tooltip>
 
       {/* Settings Modal */}
       {isOpen && (

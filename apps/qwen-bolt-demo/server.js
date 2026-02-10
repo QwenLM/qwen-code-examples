@@ -3,7 +3,6 @@ const { parse } = require('url');
 const next = require('next');
 const { Server: SocketIOServer } = require('socket.io');
 const { spawn } = require('child_process');
-const pty = require('node-pty');
 const httpProxy = require('http-proxy');
 const os = require('os');
 

@@ -5,6 +5,7 @@ import { TokenProvider } from "@/contexts/TokenContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { EditorProvider } from "@/contexts/EditorContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
+import { I18nProvider } from "@/components/I18nProvider";
 
 export const metadata: Metadata = {
   title: "Qwen Bolt - AI Website Builder",
@@ -29,7 +30,9 @@ export default function RootLayout({
             <NotificationProvider>
               <EditorProvider>
                 <ProjectProvider>
-                  {children}
+                  <I18nProvider>
+                    {children}
+                  </I18nProvider>
                 </ProjectProvider>
               </EditorProvider>
             </NotificationProvider>

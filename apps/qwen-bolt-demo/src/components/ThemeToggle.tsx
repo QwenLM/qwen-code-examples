@@ -3,6 +3,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -21,16 +22,18 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-      aria-label="Toggle theme"
-    >
-      {theme === 'dark' ? (
-        <Sun className="w-5 h-5 text-yellow-400" />
-      ) : (
-        <Moon className="w-5 h-5 text-blue-400" />
-      )}
-    </button>
+    <Tooltip content="Switch theme" side="bottom">
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+        aria-label="Toggle theme"
+      >
+        {theme === 'dark' ? (
+          <Sun className="w-5 h-5 text-yellow-400" />
+        ) : (
+          <Moon className="w-5 h-5 text-blue-400" />
+        )}
+      </button>
+    </Tooltip>
   );
 }

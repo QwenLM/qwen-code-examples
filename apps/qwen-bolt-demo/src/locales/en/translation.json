@@ -1,0 +1,68 @@
+{
+  "projectSettings": {
+    "title": "Project Settings",
+    "close": "Close",
+    "removeFile": "Remove file",
+    "open": "Project settings",
+    "knowledge": "Knowledge",
+    "files": "Files",
+    "model": "Model",
+    "reset": "Reset All",
+    "cancel": "Cancel",
+    "done": "Done",
+    "uploadFiles": "Upload Files",
+    "uploadFolder": "Upload Folder",
+    "clearAll": "Clear All",
+    "noFiles": "No files uploaded yet",
+    "startUpload": "Upload files or folders to get started",
+    "knowledgeDesc": "Provide custom knowledge or instructions for the AI.",
+    "filesDesc": "Upload files or folders to provide context to the AI. The AI can read and modify these files.",
+    "authType": "Authentication Type",
+    "authTypeDesc": "Choose how to authenticate with the AI service.",
+    "apiKey": "API Key",
+    "baseUrl": "Base URL",
+    "modelSelect": "Model",
+    "modelSelectDesc": "Select the AI model to use for code generation."
+  },
+  "fileAttachment": {
+    "attach": "Attach files"
+  },
+  "terminal": {
+    "close": "Close Terminal",
+    "add": "Add Terminal",
+    "startChat": "Start a chat to enable terminal",
+    "hide": "Hide Terminal",
+    "show": "Show Terminal",
+    "ready": "Ready to start development server..."
+  },
+  "code": {
+    "collapse": "Collapse file tree",
+    "expand": "Expand file tree",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "search": "Search Files",
+    "clearSearch": "Clear search"
+  },
+  "chat": {
+    "placeholder": "What would you like to build today?",
+    "send": "Send Message",
+    "stop": "Stop Generation",
+    "newChat": "New Chat",
+    "backToHome": "Back to Home",
+    "downloadProject": "Download Project",
+    "download": "Download"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "view": {
+    "code": "Code View",
+    "preview": "Preview",
+    "both": "Split View"
+  },
+  "preview": {
+    "refresh": "Refresh",
+    "fullscreen": "Fullscreen",
+    "openExternal": "Open External"
+  }
+}

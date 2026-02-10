@@ -2,6 +2,7 @@
 
 import { Code2, Maximize2, Minimize2, RotateCcw, Sparkles, RefreshCw, Power } from 'lucide-react';
 import { useState } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface DevServer {
   port: number;
@@ -59,50 +60,54 @@ export function PreviewPanel({
         </div>
         <div className="flex gap-2">
           {showStartButton && (
-            <button
-              onClick={onStartServer}
-              disabled={isStartingServer}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
-              title="Start Preview"
-            >
-              {isStartingServer ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Starting...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>Start Preview</span>
-                </>
-              )}
-            </button>
+            <Tooltip content="Start Preview" side="bottom">
+              <button
+                onClick={onStartServer}
+                disabled={isStartingServer}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+              >
+                {isStartingServer ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Starting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Start Preview</span>
+                  </>
+                )}
+              </button>
+            </Tooltip>
           )}
           {previewUrl && (
             <>
               {onRestart && (
-                <button
-                  onClick={onRestart}
-                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-red-500/70 hover:text-red-600"
-                  title="Restart Dev Server"
-                >
-                  <Power className="w-4 h-4" />
-                </button>
+                <Tooltip content="Restart Dev Server" side="bottom">
+                  <button
+                    onClick={onRestart}
+                    className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-red-500/70 hover:text-red-600"
+                  >
+                    <Power className="w-4 h-4" />
+                  </button>
+                </Tooltip>
               )}
-              <button
-                onClick={onRefresh}
-                className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Refresh Preview Page"
-              >
-                <RotateCcw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              </button>
-              <button
-                onClick={toggleFullscreen}
-                className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" /> : <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
-              </button>
+              <Tooltip content="Refresh Preview Page" side="bottom">
+                <button
+                  onClick={onRefresh}
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                </button>
+              </Tooltip>
+              <Tooltip content={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"} side="bottom">
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" /> : <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
+                </button>
+              </Tooltip>
             </>
           )}
         </div>

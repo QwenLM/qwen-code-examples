@@ -3,6 +3,7 @@
 import { Database, X, Upload, File, Folder, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ContextSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,14 +57,15 @@ export function ContextSettings() {
   return (
     <>
       {/* Context Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-        aria-label="Context settings"
-        title="Knowledge & Files - Manage project context and uploaded files"
-      >
-        <Database className="w-5 h-5 text-gray-400" />
-      </button>
+      <Tooltip content="Knowledge & Files" side="bottom">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+          aria-label="Context settings"
+        >
+          <Database className="w-5 h-5 text-gray-400" />
+        </button>
+      </Tooltip>
 
       {/* Context Modal */}
       {isOpen && (
