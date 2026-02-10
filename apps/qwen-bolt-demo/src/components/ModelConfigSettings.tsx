@@ -3,10 +3,12 @@
 import { Sliders, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
+import { useTranslation } from 'react-i18next';
 import type { ModelConfig } from '@/contexts/ProjectContext';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ModelConfigSettings() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateModelConfig, resetSettings } = useProject();
   const [modelConfig, setModelConfig] = useState<ModelConfig>(settings.modelConfig);
@@ -27,7 +29,7 @@ export function ModelConfigSettings() {
   return (
     <>
       {/* Model Config Button */}
-      <Tooltip content="Model Configuration" side="bottom">
+      <Tooltip content={t('modelConfig.title')} side="bottom">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -44,7 +46,7 @@ export function ModelConfigSettings() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Model Configuration
+                {t('modelConfig.title')}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}

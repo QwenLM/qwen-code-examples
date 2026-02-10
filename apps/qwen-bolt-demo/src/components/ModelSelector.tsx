@@ -3,9 +3,11 @@
 import { Cpu, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ModelSelector() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateModelConfig } = useProject();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,7 @@ export function ModelSelector() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Tooltip content="Select AI Model" side="bottom">
+      <Tooltip content={t('projectSettings.modelSelect')} side="bottom">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm"

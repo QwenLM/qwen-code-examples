@@ -60,9 +60,14 @@
     "preview": "预览视图",
     "both": "分屏视图"
   },
-  "preview": {
-    "refresh": "刷新",
-    "fullscreen": "全屏",
-    "openExternal": "在浏览器打开"
+  "language": {
+    "switch": "切换到英文"
+  },
+  "editor": {
+    "title": "编辑器设置",
+    "open": "编辑器设置"
+  },
+  "modelConfig": {
+    "title": "模型配置"
   }
 }

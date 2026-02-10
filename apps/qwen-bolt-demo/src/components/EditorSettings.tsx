@@ -3,16 +3,18 @@
 import { Settings, X } from 'lucide-react';
 import { useState } from 'react';
 import { useEditor } from '@/contexts/EditorContext';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export function EditorSettings() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateSettings, resetSettings } = useEditor();
 
   return (
     <>
       {/* Settings Button */}
-      <Tooltip content="Editor Settings" side="bottom">
+      <Tooltip content={t('editor.open')} side="bottom">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -29,7 +31,7 @@ export function EditorSettings() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Editor Settings
+                {t('editor.title')}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}

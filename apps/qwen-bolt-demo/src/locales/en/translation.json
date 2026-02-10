@@ -60,9 +60,14 @@
     "preview": "Preview",
     "both": "Split View"
   },
-  "preview": {
-    "refresh": "Refresh",
-    "fullscreen": "Fullscreen",
-    "openExternal": "Open External"
+  "language": {
+    "switch": "Switch to Chinese"
+  },
+  "editor": {
+    "title": "Editor Settings",
+    "open": "Editor Settings"
+  },
+  "modelConfig": {
+    "title": "Model Configuration"
   }
 }

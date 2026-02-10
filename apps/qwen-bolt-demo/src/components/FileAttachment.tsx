@@ -2,6 +2,7 @@
 
 import { Paperclip, File, Folder, X } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface AttachedFile {
@@ -22,6 +23,7 @@ interface FileAttachmentProps {
 }
 
 export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }: FileAttachmentProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +119,7 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
   return (
     <div className="relative">
       {/* Attach button */}
-      <Tooltip content="Attach files">
+      <Tooltip content={t('fileAttachment.attach')}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -142,14 +144,14 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             >
               <File className="w-4 h-4" />
-              Upload Files
+              {t('projectSettings.uploadFiles')}
             </button>
             <button
               onClick={() => folderInputRef.current?.click()}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             >
               <Folder className="w-4 h-4" />
-              Upload Folder
+              {t('projectSettings.uploadFolder')}
             </button>
           </div>
         </>

@@ -3,9 +3,11 @@
 import { Database, X, Upload, File, Folder, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ContextSettings() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'files'>('knowledge');
   const { settings, updateKnowledge, addFiles, removeFile, clearAllFiles } = useProject();
@@ -57,7 +59,7 @@ export function ContextSettings() {
   return (
     <>
       {/* Context Button */}
-      <Tooltip content="Knowledge & Files" side="bottom">
+      <Tooltip content={t('projectSettings.title')} side="bottom">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -74,7 +76,7 @@ export function ContextSettings() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Context Settings
+                {t('projectSettings.title')}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
@@ -94,7 +96,7 @@ export function ContextSettings() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Knowledge
+                {t('projectSettings.knowledge')}
               </button>
               <button
                 onClick={() => setActiveTab('files')}
@@ -104,7 +106,7 @@ export function ContextSettings() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Files ({settings.uploadedFiles.length})
+                {t('projectSettings.files')} ({settings.uploadedFiles.length})
               </button>
             </div>
 
