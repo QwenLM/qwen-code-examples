@@ -1,15 +1,18 @@
 import { WebContainer } from '@webcontainer/api';
 
-let webcontainerInstance: WebContainer | null = null;
-let bootPromise: Promise<WebContainer> | null = null;
+// Use globalThis to persist instance across HMR in development
+const globalContext = globalThis as unknown as {
+  _webcontainerInstance: WebContainer | null;
+  _webcontainerBootPromise: Promise<WebContainer> | null;
+};
 
 export async function getWebContainer(): Promise<WebContainer> {
-  if (webcontainerInstance) {
-    return webcontainerInstance;
+  if (globalContext._webcontainerInstance) {
+    return globalContext._webcontainerInstance;
   }
 
-  if (bootPromise) {
-    return bootPromise;
+  if (globalContext._webcontainerBootPromise) {
+    return globalContext._webcontainerBootPromise;
   }
 
   // Add COOP/COEP check
@@ -19,19 +22,19 @@ export async function getWebContainer(): Promise<WebContainer> {
   }
 
   console.log('[WebContainer] Booting...');
-  bootPromise = WebContainer.boot();
+  globalContext._webcontainerBootPromise = WebContainer.boot();
   
   try {
-    webcontainerInstance = await bootPromise;
+    globalContext._webcontainerInstance = await globalContext._webcontainerBootPromise;
     console.log('[WebContainer] Booted successfully.');
-    return webcontainerInstance;
+    return globalContext._webcontainerInstance;
   } catch (error) {
     console.error('[WebContainer] Boot failed:', error);
-    bootPromise = null;
+    globalContext._webcontainerBootPromise = null;
     throw error;
   }
 }
 
 export function isWebContainerBooted() {
-  return !!webcontainerInstance;
+  return !!globalContext._webcontainerInstance;
 }

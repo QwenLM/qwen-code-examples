@@ -22,6 +22,7 @@ import { downloadProjectAsZip } from '@/lib/file-utils';
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const initialPrompt = searchParams.get('prompt') || '';
+  const initialSessionId = searchParams.get('sessionId') || '';
   const { settings, isLoaded } = useProject();
   
   // UI state
@@ -32,13 +33,14 @@ function WorkspaceContent() {
   // 1. Files & Session Management
   const { 
     files, 
+    setFiles,
     activeFile, 
     setActiveFile, 
     sessionId, 
     setSessionId, 
     loadAllFiles,
     updateFile 
-  } = useFiles();
+  } = useFiles(initialSessionId);
 
   // 2. Chat Management
   const {
@@ -58,6 +60,11 @@ function WorkspaceContent() {
     onFileUpdate: (path, content) => {
         console.log('[Workspace] Streamed file update:', path);
         updateFile(path, content);
+    },
+    files, // Pass current files state
+    onFilesLoaded: (loadedFiles) => {
+       console.log('[Workspace] Restoring files from history');
+       setFiles(loadedFiles);
     }
   });
 

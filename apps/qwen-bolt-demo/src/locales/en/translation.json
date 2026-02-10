@@ -83,5 +83,18 @@
       "html": "🎨 Basic HTML Page",
       "counter": "🧮 Counter App"
     }
+  },
+  "chatHistory": {
+    "title": "Chat History",
+    "startNew": "Start new chat",
+    "searchPlaceholder": "Search chats...",
+    "noMatching": "No matching chats",
+    "noRecent": "No recent chats",
+    "recentChats": "Recent Chats",
+    "untitled": "Untitled",
+    "deleteConfirm": "Delete this chat?",
+    "deleteTooltip": "Delete chat",
+    "storedConversations": "{{count}} stored conversations",
+    "openHistory": "Open Chat History"
   }
 }

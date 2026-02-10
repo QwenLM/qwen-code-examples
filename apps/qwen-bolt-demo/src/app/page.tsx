@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Code2 } from 'lucide-react';
+import { Code2, History, Trash2, MessageSquare } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ModelConfigSettings } from '@/components/ModelConfigSettings';
+import { ChatHistorySidebar } from '@/components/ChatHistorySidebar';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -154,6 +155,9 @@ export default function Home() {
 
         </div>
       </div>
+
+      {/* Chat History Sidebar */}
+      <ChatHistorySidebar />
 
       {/* Bottom decoration */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent" />

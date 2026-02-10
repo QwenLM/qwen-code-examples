@@ -3,6 +3,7 @@ import type { Message, AttachedFile } from '@/components/workspace';
 import type { ProjectSettings } from '@/contexts/ProjectContext';
 import { useToken } from '@/contexts/TokenContext';
 import { useProject } from '@/contexts/ProjectContext';
+import { saveChatSession, getChatSession } from '@/lib/chat-persistence';
 
 interface UseChatProps {
   settings: ProjectSettings; // Kept for API compatibility, but we'll prefer Context directly
@@ -10,9 +11,11 @@ interface UseChatProps {
   setSessionId: (id: string) => void;
   loadAllFiles: (id: string) => Promise<void>;
   onFileUpdate?: (path: string, content: string) => void;
+  files: Record<string, string>;
+  onFilesLoaded?: (files: Record<string, string>) => void;
 }
 
-export function useChat({ settings: propsSettings, sessionId, setSessionId, loadAllFiles, onFileUpdate }: UseChatProps) {
+export function useChat({ settings: propsSettings, sessionId, setSessionId, loadAllFiles, onFileUpdate, files, onFilesLoaded }: UseChatProps) {
   // Directly access Context to ensure we always have the latest state, bypassing any prop propagation delays
   const { settings: contextSettings } = useProject();
   // Prefer context settings if available (which it should be), fallback to props
@@ -26,6 +29,61 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
   
   const { addTokenUsage } = useToken();
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Load chat history from IndexedDB when sessionId changes
+  useEffect(() => {
+    async function loadHistory() {
+      if (sessionId && messages.length === 0) {
+        try {
+          const session = await getChatSession(sessionId);
+          if (session) {
+            if (session.messages.length > 0) {
+              console.log('[useChat] Loaded history from DB for session:', sessionId);
+              setMessages(session.messages);
+            }
+            if (session.files && Object.keys(session.files).length > 0 && onFilesLoaded) {
+               console.log('[useChat] Loaded files from DB for session:', sessionId);
+               onFilesLoaded(session.files);
+            }
+          }
+        } catch (e) {
+          console.error('[useChat] Failed to load chat history:', e);
+        }
+      }
+    }
+    loadHistory();
+  }, [sessionId]);
+
+  // Save chat history to IndexedDB when messages change
+  useEffect(() => {
+    async function saveHistory() {
+      if (sessionId && messages.length > 0) {
+        try {
+          // Use the first user message as title, or "New Chat"
+          const firstUserMsg = messages.find(m => m.role === 'user');
+          const titleContent = firstUserMsg?.content || 'New Chat';
+          const title = titleContent.slice(0, 50) + (titleContent.length > 50 ? '...' : '');
+          
+          const existing = await getChatSession(sessionId);
+          const createdAt = existing?.createdAt || Date.now();
+
+          await saveChatSession({
+            id: sessionId,
+            title,
+            createdAt, // Preserve creation time
+            updatedAt: Date.now(),
+            messages,
+            files
+          });
+        } catch (e) {
+          console.error('[useChat] Failed to save chat history:', e);
+        }
+      }
+    }
+    // Debounce save
+    const timer = setTimeout(saveHistory, 1000);
+    return () => clearTimeout(timer);
+  }, [messages, sessionId, files]);
 
   // Use a ref to track the latest settings to avoid closure staleness issues
   const settingsRef = useRef(settings);

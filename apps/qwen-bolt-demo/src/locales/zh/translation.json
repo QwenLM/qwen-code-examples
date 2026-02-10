@@ -83,5 +83,18 @@
       "html": "🎨 基础 HTML 页面",
       "counter": "🧮 计数器应用"
     }
+  },
+  "chatHistory": {
+    "title": "历史对话",
+    "startNew": "开始新对话",
+    "searchPlaceholder": "搜索对话...",
+    "noMatching": "没有匹配的对话",
+    "noRecent": "没有最近的对话",
+    "recentChats": "最近对话",
+    "untitled": "未命名",
+    "deleteConfirm": "确定删除此对话吗？",
+    "deleteTooltip": "删除对话",
+    "storedConversations": "{{count}} 个已存储的对话",
+    "openHistory": "打开历史对话"
   }
 }

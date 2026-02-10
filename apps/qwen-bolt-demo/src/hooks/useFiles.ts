@@ -19,6 +19,10 @@ export function useFiles(initialSessionId: string = '') {
       }));
   }, []);
 
+  const setAllFiles = useCallback((newFiles: Record<string, string>) => {
+    setFiles(newFiles);
+  }, []);
+
   // Recursively collect all file paths
   const collectFilePaths = useCallback((nodes: FileNode[]): string[] => {
     const paths: string[] = [];

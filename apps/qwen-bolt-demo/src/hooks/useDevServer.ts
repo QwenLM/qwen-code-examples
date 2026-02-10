@@ -75,13 +75,28 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
       console.log(`[DevServer Debug] Project root detected: ${projectRoot}`);
       setDevServerLogs(prev => [...prev, `[WebContainer] Project root detected: ${projectRoot}`]);
       
+      // Use a random port to avoid collisions with zombie processes inside WebContainer
+      // Although we run killall, sometimes processes linger.
+      const randomPort = Math.floor(Math.random() * 1000) + 3000;
+      
       // force jsh to avoid 'Cannot find module /bin/zsh' errors if npm tries to auto-detect shell from env
       const spawnOptions = { 
         cwd: projectRoot === '.' ? '/' : projectRoot,
         env: { 
-            CI: 'true'
+            CI: 'true',
+            PORT: String(randomPort)
         }
       };
+
+      // 0. Cleanup running processes
+      // Since WebContainer instance is persistent, we might have leftover processes holding ports.
+      // We attempt to kill them before starting a new server.
+      try {
+        const killNode = await webcontainer.spawn('killall', ['node']);
+        await killNode.exit;
+      } catch (e) {
+        // Ignore errors (e.g. no process found)
+      }
 
       // 1. Install dependencies (Optimized)
       // Check if package.json exists
@@ -93,14 +108,15 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
       console.log(`[DevServer Debug] Package.json search. Root: ${projectRoot}, Found Path: ${packageJsonPath}`);
 
       const packageJsonContent = packageJsonPath ? files[packageJsonPath] : null;
-      let startCommand = 'dev'; // default
+      let startCommand = 'npm';
+      let startArgs = ['run', 'dev']; // default
 
       if (packageJsonContent) {
          try {
             const pkg = JSON.parse(packageJsonContent);
             // Check available scripts
             if (!pkg.scripts?.dev && pkg.scripts?.start) {
-                startCommand = 'start';
+                startArgs = ['run', 'start'];
             }
          } catch (e) {
              console.warn('Failed to parse package.json for script detection');
@@ -132,13 +148,67 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
          }
       } else {
          setDevServerLogs(prev => [...prev, '[WebContainer] No package.json found, skipping install.']);
+         
+         // Static Site Fallback
+         const hasIndexHtml = Object.keys(files).some(f => f.endsWith('index.html'));
+         if (hasIndexHtml) {
+             setDevServerLogs(prev => [...prev, '[WebContainer] Detected static HTML project. Setting up static server...']);
+             
+             const serverScript = `
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const port = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  let filePath = '.' + req.url;
+  if (filePath === './') filePath = './index.html';
+
+  const extname = path.extname(filePath);
+  let contentType = 'text/html';
+  switch (extname) {
+    case '.js': contentType = 'text/javascript'; break;
+    case '.css': contentType = 'text/css'; break;
+    case '.json': contentType = 'application/json'; break;
+    case '.png': contentType = 'image/png'; break;
+    case '.jpg': contentType = 'image/jpg'; break;
+    case '.html': contentType = 'text/html'; break;
+  }
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if(error.code == 'ENOENT'){
+        res.writeHead(404);
+        res.end('404 Not Found');
+      } else {
+        res.writeHead(500);
+        res.end('500 Server Error: '+error.code);
+      }
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
+    }
+  });
+});
+
+server.listen(port, () => {
+  console.log('Static server running at http://localhost:' + port + '/');
+});
+`;
+             const scriptPath = projectRoot === '.' ? 'temp-server.cjs' : `${projectRoot}/temp-server.cjs`;
+             await webcontainer.fs.writeFile(scriptPath, serverScript);
+             
+             startCommand = 'node';
+             startArgs = ['temp-server.cjs'];
+         }
       }
 
       // 2. Start Dev Server
-      setDevServerLogs(prev => [...prev, `[WebContainer] Starting dev server (npm run ${startCommand})...`]);
-      console.log(`[DevServer] Spawning npm run ${startCommand}`);
+      setDevServerLogs(prev => [...prev, `[WebContainer] Starting dev server (${startCommand} ${startArgs.join(' ')})...`]);
+      console.log(`[DevServer] Spawning ${startCommand} ${startArgs.join(' ')}`);
       
-      const devProcess = await webcontainer.spawn('npm', ['run', startCommand], spawnOptions);
+      const devProcess = await webcontainer.spawn(startCommand, startArgs, spawnOptions);
       devProcessRef.current = devProcess;
       
       devProcess.output.pipeTo(new WritableStream({
