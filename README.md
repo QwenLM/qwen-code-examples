@@ -48,6 +48,25 @@ Generates high-quality images from text descriptions using Alibaba Cloud's DashS
 - **Location**: `skills/image-generate/`
 - **Key Features**: Smart prompt optimization for hand-drawn styles and automated asset management.
 
+### 3. Auto PR Skill
+
+Automated Pull Request submission assistant, including code review, documentation generation, and PR creation.
+
+- **Location**: `skills/auto-pr/`
+- **Key Features**:
+  - Branch preparation and synchronization
+  - Code review analysis and difference checking
+  - Automatic PR template discovery
+  - English documentation generation with user confirmation
+  - Automated PR submission via GitHub CLI
+  - Pre-checks for dependencies and authentication
+### 4. Dashboard Builder Skill
+
+Builds full-stack dashboard applications using React/Next.js + shadcn/ui + Tailwind CSS + Recharts + Express with customizable data sources. Perfect for data visualization dashboards, business intelligence interfaces, monitoring systems, KPI displays, and analytics platforms.
+
+- **Location**: `skills/dashboard-builder/`
+- **Key Features**: Professional dark theme, big screen optimization, animated components, configurable data integrations, quick start templates, and additional large-screen components.
+
 ## Marketing Materials
 
 ### Qwen Code Brochures
