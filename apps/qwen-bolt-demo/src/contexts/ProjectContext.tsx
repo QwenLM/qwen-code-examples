@@ -9,6 +9,7 @@ export interface UploadedFile {
   content: string;
   type: 'file' | 'folder';
   size: number;
+  folderName?: string; // Original folder name if uploaded as part of a folder
 }
 
 export interface ModelConfig {

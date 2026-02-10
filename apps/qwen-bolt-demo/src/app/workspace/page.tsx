@@ -16,6 +16,7 @@ import {
   CodePanel,
   PreviewPanel,
   ViewMode,
+  AttachedFile,
 } from '@/components/workspace';
 import { downloadProjectAsZip } from '@/lib/file-utils';
 
@@ -23,7 +24,8 @@ function WorkspaceContent() {
   const searchParams = useSearchParams();
   const initialPrompt = searchParams.get('prompt') || '';
   const initialSessionId = searchParams.get('sessionId') || '';
-  const { settings, isLoaded } = useProject();
+  const { settings, isLoaded, clearAllFiles } = useProject();
+  const hasRestoredFilesRef = useRef(false);
   
   // UI state
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
@@ -128,11 +130,29 @@ function WorkspaceContent() {
   useEffect(() => {
     // Only send if settings are loaded to ensure we have the correct model config auth keys
     if (initialPrompt && messages.length === 0 && !hasInitializedRef.current && isLoaded) {
+       // If we have uploaded files from the home page, restore them first
+      if (settings.uploadedFiles.length > 0) {
+        const filesToAttach: AttachedFile[] = settings.uploadedFiles.map(f => ({
+          id: f.id,
+          name: f.name,
+          path: f.path,
+          content: f.content,
+          size: f.size,
+          isFolder: f.type === 'folder',
+          folderName: f.folderName || (f.type === 'folder' ? f.path.split('/')[0] : undefined)
+        }));
+        
+        console.log('[Workspace] Restoring attached files from Home:', filesToAttach);
+        setAttachedFiles(filesToAttach);
+        clearAllFiles();
+        return; // Wait for state update before sending
+      }
+
       hasInitializedRef.current = true;
       console.log('[Workspace] Sending initial prompt with loaded settings:', settings.modelConfig);
       sendMessage(initialPrompt);
     }
-  }, [initialPrompt, messages.length, sendMessage, isLoaded, settings]);
+  }, [initialPrompt, messages.length, sendMessage, isLoaded, settings, setAttachedFiles, clearAllFiles]);
 
   // Handle open in new tab
   const handleOpenInNewTab = () => {
