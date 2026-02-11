@@ -6,7 +6,7 @@ import { useProject } from '@/contexts/ProjectContext';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-export function ModelSelector() {
+export function ModelSelector({ align = 'right' }: { align?: 'left' | 'right' }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateModelConfig } = useProject();
@@ -70,7 +70,7 @@ export function ModelSelector() {
       </Tooltip>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden">
+        <div className={`absolute top-full mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden ${align === 'left' ? 'left-0' : 'right-0'}`}>
           <div className="p-3">
             <div className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1 font-medium mb-2">Qwen Models</div>
             <div className="grid grid-cols-2 gap-2">

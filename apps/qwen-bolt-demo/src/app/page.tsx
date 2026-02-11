@@ -162,7 +162,7 @@ export default function Home() {
       </div>
 
       {/* Top navigation */}
-      <nav className="relative z-10 border-b border-gray-200 dark:border-white/5 bg-white/80 dark:bg-black/20 backdrop-blur-xl">
+      <nav className="relative z-50 border-b border-gray-200 dark:border-white/5 bg-white/80 dark:bg-black/20 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

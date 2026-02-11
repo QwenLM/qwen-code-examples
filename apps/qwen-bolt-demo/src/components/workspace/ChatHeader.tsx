@@ -48,7 +48,7 @@ export function ChatHeader({ onDownloadProject }: ChatHeaderProps) {
       
       {/* Second row: Function buttons */}
       <div className="flex items-center gap-2 px-4 py-2 border-t border-gray-100/60 dark:border-gray-800/40">
-        <ModelSelector />
+        <ModelSelector align="left" />
         <ContextSettings />
         <ModelConfigSettings />
       </div>
