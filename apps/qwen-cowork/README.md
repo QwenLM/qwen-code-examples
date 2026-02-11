@@ -80,19 +80,17 @@ This means:
 
 ## 🚀 Quick Start
 
-### Direct Installation (Recommended)
+### Qwen Code Direct Installation (Recommended)
 
-Download the installation package for your computer from the project: https://github.com/QwenLM/qwen-code-examples/releases
+Just tell Qwen Code, and get it all done within 3 minutes.
 
-![](https://gw.alicdn.com/imgextra/i4/O1CN01ngzzeT1hwgq5ZmEQi_!!6000000004342-2-tps-1113-420.png)
+```
+Help me install and start the cowork project. The repository address is: https://github.com/QwenLM/qwen-code-examples
+``` 
 
-**Installation Guide Video** 👇
+👇 Click the image to play the installation video:
 
-[![](https://img.alicdn.com/imgextra/i3/6000000002789/O1CN01rAwmsd1WTPkPPHWDE_!!6000000002789-0-tbvideo.jpg)](https://cloud.video.taobao.com/vod/NWWgmfBghXgqCyow2ithG0ByhDsBLDwrOUXLle1Qyq4.mp4)
-
-If you encounter issues opening the app, go to **System Settings** → **Privacy & Security** → scroll down to **Security** → select **Open Anyway**
-
-![](https://gw.alicdn.com/imgextra/i4/O1CN016zdcQv1zsG5eHIdfI_!!6000000006769-2-tps-1584-950.png)
+[![](https://img.alicdn.com/imgextra/i4/6000000008035/O1CN01HdjX9O29E5VhMZbq8_!!6000000008035-0-tbvideo.jpg)](https://cloud.video.taobao.com/vod/tsV-hCkm9vMjGTWsmDr8qcB8LxY_mfwWb7R97SBR2Ps.mp4)
 
 ### Source Installation
 

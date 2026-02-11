@@ -1,3 +1,5 @@
+ 
+
 <div align="center">
 
 # Qwen Code Cowork
@@ -78,20 +80,17 @@ Qwen Cowork **与 Qwen Code 共享配置**。
 
 ## 🚀 快速开始
 
-### 直接安装（推荐）
+### Qwen Code 直接安装（推荐）
 
-从项目中选择下载对应电脑安装包： https://github.com/QwenLM/qwen-code-examples/releases
+直接告诉 Qwen Code，3 分钟内全搞定。
 
-![](https://gw.alicdn.com/imgextra/i4/O1CN01ngzzeT1hwgq5ZmEQi_!!6000000004342-2-tps-1113-420.png)
+```
+帮我安装 cowork 项目并启动，仓库地址是：https://github.com/QwenLM/qwen-code-examples
+```
 
-**安装指导视频**👇
+👇 点击图片播放安装视频：
 
-[![](https://img.alicdn.com/imgextra/i3/6000000002789/O1CN01rAwmsd1WTPkPPHWDE_!!6000000002789-0-tbvideo.jpg)](https://cloud.video.taobao.com/vod/NWWgmfBghXgqCyow2ithG0ByhDsBLDwrOUXLle1Qyq4.mp4)
-
-如果遇到无法打开的情况，可以打开【系统设置】-【隐私与安全性】- 拖动到下方【安全性】- 选择【仍要打开】
-
-![](https://gw.alicdn.com/imgextra/i4/O1CN016zdcQv1zsG5eHIdfI_!!6000000006769-2-tps-1584-950.png)
-
+[![](https://img.alicdn.com/imgextra/i4/6000000008035/O1CN01HdjX9O29E5VhMZbq8_!!6000000008035-0-tbvideo.jpg)](https://cloud.video.taobao.com/vod/tsV-hCkm9vMjGTWsmDr8qcB8LxY_mfwWb7R97SBR2Ps.mp4)
 ### 源码安装
 
 **前置条件**
@@ -137,14 +136,14 @@ bun run dist:linux        # Linux
 
 ## 架构概览
 
-|层级|技术|
-|---|---|
-|框架|Electron 39|
-|前端|React 19, Tailwind CSS 4|
-|状态管理|Zustand|
-|数据库|better-sqlite3 (WAL 模式)|
-|AI|@qwen-code/sdk|
-|构建|Vite, electron-builder|
+| 层级   | 技术                       |
+| ---- | ------------------------ |
+| 框架   | Electron 39              |
+| 前端   | React 19, Tailwind CSS 4 |
+| 状态管理 | Zustand                  |
+| 数据库  | better-sqlite3 (WAL 模式)  |
+| AI   | @qwen-code/sdk           |
+| 构建   | Vite, electron-builder   |
 
 ## 开发
 
