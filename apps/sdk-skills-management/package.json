@@ -1,0 +1,30 @@
+{
+  "name": "@qwen-code/sdk-skills-management",
+  "version": "0.1.0",
+  "description": "A powerful Skill wrapper SDK built on top of @qwen-code/sdk",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx skill-interactive.ts",
+    "dev": "tsx skill-interactive.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "qwen",
+    "sdk",
+    "skills",
+    "ai",
+    "llm"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@qwen-code/sdk": ">0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

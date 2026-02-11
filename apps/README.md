@@ -125,6 +125,30 @@ A product promotional video creation tool that combines the power of Remotion (p
 **Tech Stack**: Next.js, Qwen Code SDK, Remotion, Wanx Video Generation
 
 ---
+### 6. SDK Skills Management — For Developers
+
+> **Tagline**: *Intelligent skill execution through natural language*
+
+A powerful Skill wrapper SDK built on top of `@qwen-code/sdk` that enables intelligent skill execution through natural language, where the LLM automatically selects and executes the appropriate skill based on user input.
+
+**Key Features**:
+- Load and parse skill definitions from SKILL.md files
+- Build intelligent prompts with skill context
+- Execute conversations using `@qwen-code/sdk`'s query API
+- Multi-turn interaction with context preservation
+- Automatic skill selection based on user intent
+- Support for custom skill scripts and templates
+
+**Use Cases**:
+- Build AI-powered task automation systems
+- Create interactive skill-based chatbots
+- Implement template matching and selection workflows
+- Develop custom skill execution pipelines
+- Enable natural language task completion
+
+**Tech Stack**: TypeScript, Node.js, `@qwen-code/sdk`, Qwen/OpenAI LLM
+
+---
 
 ## Getting Started
 
