@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-export function useResizablePanel(initialHeight = 320, minHeight = 100, maxHeight = 600) {
+export function useResizablePanel(initialHeight = 320, minHeight = 100, maxHeight = 900) {
   const [height, setHeight] = useState(initialHeight);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef(0);

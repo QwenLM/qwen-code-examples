@@ -217,7 +217,7 @@ function WorkspaceContent() {
         {/* Content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Main content area */}
-          <div className={`flex overflow-hidden ${isTerminalOpen ? 'flex-1' : 'h-full'}`}>
+          <div className="flex-1 flex overflow-hidden min-h-0">
             {viewMode === 'code' && (
               <div className="w-full flex overflow-hidden">
                 <CodePanel
@@ -250,9 +250,13 @@ function WorkspaceContent() {
           {/* Terminal Panel with Resizable Handle */}
           <div 
             ref={containerRef}
-            className="flex flex-col"
-            style={{ height: isTerminalOpen ? terminalHeight : 'auto' }}
+            className="flex flex-col relative shrink-0 z-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+            style={{ height: isTerminalOpen ? terminalHeight : '40px', minHeight: isTerminalOpen ? 100 : 40 }}
           >
+            {/* Overlay to catch events when dragging over iframes */}
+            {isDragging && (
+                <div className="fixed inset-0 z-50 bg-transparent cursor-ns-resize" />
+            )}
             {/* Drag Handle - serves as both border and resize handle */}
             {isTerminalOpen && (
               <>
@@ -269,9 +273,6 @@ function WorkspaceContent() {
                 </div>
                 <div className="h-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
               </>
-            )}
-            {!isTerminalOpen && (
-              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
             )}
             <TerminalPanel 
               devServerLogs={devServerLogs} 

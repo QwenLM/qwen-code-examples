@@ -1,217 +1,171 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Cable } from 'lucide-react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useRef, memo } from 'react';
+import { Terminal as XTerm } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebContainer } from '@webcontainer/api';
+import { useWebContainer } from '../../hooks/useWebContainer';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
-  containerId: string;
-  socketUrl: string;
-  onDevServerDetected?: (info: { port: number; framework: string; proxyUrl: string }) => void;
-  theme?: 'light' | 'dark';
-  sessionId?: string;
+  className?: string;
+  readonly?: boolean;
 }
 
-const Terminal = React.forwardRef<any, TerminalProps>(({ containerId, socketUrl, onDevServerDetected, theme = 'dark', sessionId }, ref) => {
-  const xtermRef = useRef<HTMLDivElement>(null);
-  const termRef = useRef<any>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const fitAddonRef = useRef<any>(null);
-  const hasEmittedInitialResize = useRef<boolean>(false);
-  const [disconnected, setDisconnected] = useState(false);
-  const [reconnectSignal, setReconnectSignal] = useState(0);
+const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<XTerm | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const { webcontainer: webContainer, isLoading } = useWebContainer();
+  const isReady = !isLoading && !!webContainer;
+  const shellProcessRef = useRef<any>(null);
+  const initializedRef = useRef(false);
 
-  const handleDisconnected = useCallback(() => setDisconnected(true), []);
-  const handleConnected = useCallback(() => setDisconnected(false), []);
-  const handleReconnect = useCallback(() => setReconnectSignal((s) => s + 1), []);
-
-  const sendTerminalResize = useCallback((socket: Socket, terminal: any) => {
-    if (!socket || !terminal) return;
-    const cols = terminal.cols;
-    const rows = terminal.rows;
-    socket.emit('resize', { cols, rows });
-  }, []);
-
+  // Initialize Terminal
   useEffect(() => {
-    if (!containerId || !xtermRef.current) return;
+    if (!containerRef.current || terminalRef.current) return;
 
-    hasEmittedInitialResize.current = false;
+    // Create terminal instance
+    const term = new XTerm({
+      cursorBlink: true,
+      convertEol: true,
+      disableStdin: readonly,
+      theme: {
+        background: '#1a1b26',
+        foreground: '#a9b1d6',
+        cursor: '#c0caf5',
+        selectionBackground: '#33467c',
+        black: '#32344a',
+        red: '#f7768e',
+        green: '#9ece6a',
+        yellow: '#e0af68',
+        blue: '#7aa2f7',
+        magenta: '#bb9af7',
+        cyan: '#7dcfff',
+        white: '#a9b1d6',
+        brightBlack: '#414868',
+        brightRed: '#f7768e',
+        brightGreen: '#9ece6a',
+        brightYellow: '#e0af68',
+        brightBlue: '#7aa2f7',
+        brightMagenta: '#bb9af7',
+        brightCyan: '#7dcfff',
+        brightWhite: '#c0caf5',
+      },
+      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+      fontSize: 14,
+      lineHeight: 1.2,
+    });
 
-    const initTerminal = async () => {
-      try {
-        const [{ Terminal: XTerm }, { FitAddon }, { ClipboardAddon }, { SearchAddon }] =
-          await Promise.all([
-            import('@xterm/xterm'),
-            import('@xterm/addon-fit'),
-            import('@xterm/addon-clipboard'),
-            import('@xterm/addon-search'),
-          ]);
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    
+    term.open(containerRef.current);
+    fitAddon.fit();
 
-        // Safety check if component unmounted during load
-        if (!xtermRef.current) return;
+    terminalRef.current = term;
+    fitAddonRef.current = fitAddon;
 
-      const term = new XTerm({
-        fontSize: 14,
-        cursorBlink: true,
-        theme: theme === 'light' ? {
-          background: '#ffffff',
-          foreground: '#333333',
-          cursor: '#333333',
-          selectionBackground: 'rgba(0, 0, 0, 0.1)',
-        } : { 
-          background: '#1e1e1e',
-          foreground: '#ffffff',
-        },
-      });
-
-      const fitAddon = new FitAddon();
-      const clipboardAddon = new ClipboardAddon();
-      const searchAddon = new SearchAddon();
-
-      term.loadAddon(fitAddon);
-      term.loadAddon(clipboardAddon);
-      term.loadAddon(searchAddon);
-
-      if (xtermRef.current) {
-        term.open(xtermRef.current);
-      }
-
-      termRef.current = term;
-      fitAddonRef.current = fitAddon;
-      fitAddon.fit();
-
-      const socket = io(socketUrl, {
-        path: '/api/socket/socket.io',
-      });
-      socketRef.current = socket;
-
-      socket.on('connect', () => {
-        console.log('[Terminal] Connected to WebSocket');
-        socket.emit('start-terminal', { containerId, sessionId });
-        handleConnected();
-      });
-
-      socket.on('terminal-ready', () => {
-        console.log('[Terminal] Terminal ready');
-        sendTerminalResize(socket, term);
-        hasEmittedInitialResize.current = true;
-      });
-
-      socket.on('output', (data: string) => {
-        term.write(data);
-
-        if (!hasEmittedInitialResize.current) {
-          sendTerminalResize(socket, term);
-          hasEmittedInitialResize.current = true;
-        }
-      });
-
-      term.onData((data) => {
-        socket.emit('input', data);
-      });
-
-      socket.on('disconnect', () => {
-        console.log('[Terminal] Disconnected from WebSocket');
-        term.writeln('\r\n[Disconnected]\r\n');
-        handleDisconnected();
-      });
-
-      socket.on('dev-server-started', (info) => {
-        console.log('[Terminal] Dev server detected:', info);
-        term.writeln(`\r\n\x1b[32m✓ Detected ${info.framework} dev server on port ${info.port}\x1b[0m\r\n`);
-        term.writeln(`\x1b[36mPreview will update automatically\x1b[0m\r\n`);
-        if (onDevServerDetected) {
-          onDevServerDetected(info);
-        }
-      });
-
-      const resizeObserver = new ResizeObserver(() => {
+    // Handle resize
+    const resizeObserver = new ResizeObserver(() => {
+      // Small delay to ensure container has settled
+      requestAnimationFrame(() => {
         fitAddon.fit();
-        setTimeout(() => {
-          if (socket && term) {
-            sendTerminalResize(socket, term);
-          }
-        }, 10);
       });
+    });
+    
+    resizeObserver.observe(containerRef.current);
 
-      if (xtermRef.current) {
-        resizeObserver.observe(xtermRef.current);
-      }
+    // Initial greeting
+    term.writeln('\x1b[32mTarget environment ready.\x1b[0m');
+    term.writeln('Waiting for WebContainer...');
 
-      return () => {
-        term.dispose();
-        socket.disconnect();
-        resizeObserver.disconnect();
-      };
-    } catch (error) {
-      console.error('Failed to initialize terminal:', error);
-      return undefined;
-    }
-  };
-
-    const cleanup = initTerminal();
     return () => {
-      cleanup.then((cleanupFn) => cleanupFn?.());
+      resizeObserver.disconnect();
+      term.dispose();
+      terminalRef.current = null;
+      initializedRef.current = false;
     };
-  }, [containerId, socketUrl, reconnectSignal, sendTerminalResize, handleConnected, handleDisconnected]);
+  }, [readonly]);
 
+  // Connect to WebContainer
   useEffect(() => {
-    if (!termRef.current) return;
-    termRef.current.options.theme = theme === 'light' ? {
-      background: '#ffffff',
-      foreground: '#333333',
-      cursor: '#333333',
-      selectionBackground: 'rgba(0, 0, 0, 0.1)',
-    } : { 
-      background: '#1e1e1e',
-      foreground: '#ffffff',
-    };
-  }, [theme]);
+    if (!isReady || !webContainer || !terminalRef.current || initializedRef.current) return;
 
-  useEffect(() => {
-    const handleWindowResize = () => {
-      if (fitAddonRef.current && termRef.current && socketRef.current) {
-        fitAddonRef.current.fit();
-        setTimeout(() => {
-          if (termRef.current && socketRef.current) {
-            sendTerminalResize(socketRef.current, termRef.current);
+    const startShell = async () => {
+      try {
+        initializedRef.current = true;
+        const term = terminalRef.current!;
+        
+        term.writeln('\x1b[34mWebContainer connected. Starting shell...\x1b[0m');
+
+        const shellProcess = await webContainer.spawn('jsh', {
+          terminal: {
+            cols: term.cols,
+            rows: term.rows,
+          },
+        });
+
+        shellProcessRef.current = shellProcess;
+        
+        shellProcess.output.pipeTo(
+          new WritableStream({
+            write(data) {
+              term.write(data);
+            },
+          })
+        );
+
+        const input = shellProcess.input.getWriter();
+        const disposable = term.onData((data) => {
+          input.write(data);
+        });
+
+        // Handle terminal resize for shell
+        const handleResize = (evt: { cols: number; rows: number }) => {
+          shellProcess.resize({
+            cols: evt.cols,
+            rows: evt.rows,
+          });
+        };
+        term.onResize(handleResize);
+
+        // Listen for external commands
+        const handleCommand = async (e: CustomEvent) => {
+          const { command } = e.detail;
+          if (command) {
+            term.writeln(`\r\n> ${command}`);
+            input.write(command + '\r');
           }
-        }, 10);
+        };
+        window.addEventListener('bolt:run-command', handleCommand as unknown as EventListener);
+
+        await shellProcess.exit;
+        
+        // Cleanup if process exits
+        disposable.dispose();
+        window.removeEventListener('bolt:run-command', handleCommand as unknown as EventListener);
+        
+      } catch (error) {
+        console.error('Terminal shell error:', error);
+        terminalRef.current?.writeln(`\r\n\x1b[31mError starting shell: ${error}\x1b[0m`);
+        initializedRef.current = false;
       }
     };
 
-    window.addEventListener('resize', handleWindowResize);
+    startShell();
+
     return () => {
-      window.removeEventListener('resize', handleWindowResize);
+      // No cleanup here to persist shell across tab switches if component unmounts
+      // but in our implementation we use display:none so it shouldn't unmount often
     };
-  }, [sendTerminalResize]);
-
-  React.useImperativeHandle(ref, () => ({
-    clear: () => {
-      if (termRef.current) {
-        termRef.current.clear();
-      }
-    },
-  }));
+  }, [webContainer, isReady]);
 
   return (
-    <div className="relative flex h-full w-full flex-col">
-      <div className={`flex-1 overflow-y-auto rounded-b-lg p-2 ${theme === 'light' ? 'bg-white' : 'bg-[#1e1e1e]'}`}>
-        <div className="h-full w-full min-w-0" ref={xtermRef} />
-        {disconnected && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <button
-              className="pointer-events-auto rounded border border-gray-300 bg-white/90 px-4 py-2 font-semibold text-black shadow hover:bg-white"
-              title="Reconnect Terminal"
-              onClick={handleReconnect}
-            >
-              <Cable className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+    <div 
+      className={`h-full w-full bg-[#1a1b26] overflow-hidden ${className}`}
+      ref={containerRef}
+    />
   );
 });
 

@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useWebContainer } from './useWebContainer';
 
 interface FileNode {
   name: string;
@@ -11,16 +12,50 @@ export function useFiles(initialSessionId: string = '') {
   const [files, setFiles] = useState<Record<string, string>>({});
   const [activeFile, setActiveFile] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>(initialSessionId);
+  const { webcontainer } = useWebContainer();
 
-  const updateFile = useCallback((path: string, content: string) => {
+  const updateFile = useCallback(async (path: string, content: string) => {
+      // 1. Update local state for UI
       setFiles(prev => ({
           ...prev,
           [path]: content
       }));
-  }, []);
+
+      // 2. Write directly to WebContainer file system
+      if (webcontainer) {
+          try {
+              // Normalize path: Ensure no leading slash
+              const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+              // Since we mount at root, the target path is just the clean path
+              const targetPath = cleanPath;
+              
+              // Ensure directory structure exists (recursive mkdir is stored in memory FS implicitly usually, 
+              // but explicit mkdir is safer for nested files if parent doesn't exist)
+              const parts = targetPath.split('/');
+              if (parts.length > 1) {
+                  const dir = parts.slice(0, -1).join('/');
+                  // This command is fast and safe to run repeatedly? 
+                  // No, mkdir throws if exists. run "mkdir -p" via spawn or check fs.
+                  // Since we are writing single file, let's just attempt write. 
+                  // WebContainer fs.writeFile does NOT create parent dirs automatically.
+                  
+                  // Simplest fix: Just mkdir -p using spawn for the dir.
+                  await webcontainer.spawn('mkdir', ['-p', dir]);
+              }
+              
+              await webcontainer.fs.writeFile(targetPath, content);
+              console.log('[useFiles] Wrote file to WebContainer:', targetPath);
+          } catch (err) {
+              console.error('[useFiles] Failed to write file to WebContainer:', path, err);
+          }
+      }
+  }, [webcontainer]);
 
   const setAllFiles = useCallback((newFiles: Record<string, string>) => {
     setFiles(newFiles);
+    // Note: setAllFiles is usually used on initial load or reset.
+    // Syncing to WebContainer handles 'mount' separately in useDevServer currently.
+    // Ideally we merge that logic here or keep mount there.
   }, []);
 
   // Recursively collect all file paths
