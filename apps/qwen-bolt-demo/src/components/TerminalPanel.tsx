@@ -76,7 +76,7 @@ export function TerminalPanel({
             display: activeTab === 'terminal' ? 'block' : 'none'
           }}
         >
-          <Terminal />
+          <Terminal onServerReady={onServerDetected} />
         </div>
 
         {/* Output Tab */}

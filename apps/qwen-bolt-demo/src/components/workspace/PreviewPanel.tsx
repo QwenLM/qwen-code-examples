@@ -36,7 +36,7 @@ export function PreviewPanel({
   onOpenInNewTab,
 }: PreviewPanelProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const showStartButton = !previewUrl && sessionId && hasFiles;
+  const showStartButton = false; // Disabled as per requirement to auto-start
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);

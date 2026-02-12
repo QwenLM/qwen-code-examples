@@ -10,9 +10,10 @@ import '@xterm/xterm/css/xterm.css';
 interface TerminalProps {
   className?: string;
   readonly?: boolean;
+  onServerReady?: (port: number) => void;
 }
 
-const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
+const Terminal = memo(({ className = '', readonly = false, onServerReady }: TerminalProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -112,6 +113,16 @@ const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
           new WritableStream({
             write(data) {
               term.write(data);
+              // Simple check for server ready (Vite/Next/others)
+              const match = data.match(/Local:\s+http:\/\/localhost:(\d+)/) || 
+                            data.match(/Ready on http:\/\/localhost:(\d+)/) ||
+                            data.match(/http:\/\/localhost:(\d+)/);
+              if (match) {
+                const port = parseInt(match[1], 10);
+                if (!isNaN(port) && onServerReady) {
+                  onServerReady(port);
+                }
+              }
             },
           })
         );
