@@ -1,6 +1,52 @@
 import { NextRequest } from 'next/server';
-import { query, type SDKUserMessage, type SDKMessage, type SDKSystemMessage, createSdkMcpServer, tool } from '@qwen-code/sdk';
+import { query, type SDKUserMessage, type SDKMessage, type SDKSystemMessage, createSdkMcpServer, tool, SdkLogger } from '@qwen-code/sdk';
 import { z } from 'zod';
+
+// Global listeners for SDK logs
+const logListeners = new Set<(msg: string) => void>();
+
+// Monkey-patch process.stdout/stderr to capture ALL output including direct writes
+// This is necessary because in Docker/Headless modes, SDKs might bypass SdkLogger
+// or write directly to stdout for formatting (like the ASCII auth box).
+if (!(global as any).__qwen_log_hook_installed) {
+  (global as any).__qwen_log_hook_installed = true;
+  
+  const hookWrite = (originalWrite: Function) => {
+    return function(this: any, chunk: any, ...args: any[]) {
+      try {
+        const msg = chunk ? chunk.toString() : '';
+        logListeners.forEach(listener => listener(msg));
+      } catch (e) {
+        // Ignore logging errors
+      }
+      return originalWrite.call(this, chunk, ...args);
+    };
+  };
+
+  process.stdout.write = hookWrite(process.stdout.write);
+  process.stderr.write = hookWrite(process.stderr.write);
+  console.log('[Chat API] Global stdout/stderr hooks installed');
+}
+
+// Fallback: Configure SdkLogger as well (for structured logs)
+try {
+  SdkLogger.configure({
+    logLevel: 'debug',
+    stderr: (message: string) => {
+      // No need to console.error here if we want to avoid double printing,
+      // but SdkLogger usually doesn't print unless configured.
+      // If we print here, our stdout hook will catch it again?
+      // Yes. So we should be careful.
+      // However, SdkLogger implementation details matter.
+      // Let's just notify listeners directly here too, just in case SdkLogger
+      // uses a mechanism that bypasses stdout/stderr (unlikely in Node).
+      // actually, if SdkLogger writes to stderr, our hook catches it.
+      // So we might receive duplicate events. That's fine for our use case (idempotent URL parsing).
+    }
+  });
+} catch (e) {
+  console.warn('[Chat API] Failed to configure SdkLogger:', e);
+}
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile, readFile, realpath } from 'fs/promises';
 import { watch, FSWatcher } from 'fs';
@@ -316,6 +362,31 @@ export async function POST(request: NextRequest) {
         
         watcher = setupFileWatcher(workspaceDir, controller);
 
+        // Listen for Auth URLs from SDK logs
+        const logListener = (msg: string) => {
+          if (msg.includes('chat.qwen.ai/authorize')) {
+             const match = msg.match(/(https:\/\/chat\.qwen\.ai\/authorize\S+)/);
+             // Ensure the URL is clean (remove trailing chars if any)
+             const url = match ? match[1].split('|')[0].trim() : null;
+             
+             if (url) {
+                const authEvent = {
+                   type: 'auth_required',
+                   url: url,
+                   text: `Please authorize the application by visiting: ${url}`
+                };
+                try {
+                   // Send as a special system message or directly as data
+                   // We'll send it as a data object that the frontend handles
+                   controller.enqueue(encoder.encode(`data: ${JSON.stringify(authEvent)}\n\n`));
+                } catch (e) {
+                   // Controller might be closed
+                }
+             }
+          }
+        };
+        logListeners.add(logListener);
+
         try {
           q = query({
             // @ts-ignore - We are using advanced SDK stream capabilities for System Prompt
@@ -414,6 +485,7 @@ export async function POST(request: NextRequest) {
             console.error('[API /api/chat] Error encoding error message:', encodeError);
           }
         } finally {
+          logListeners.delete(logListener);
           // Delay to capture last updates
           await new Promise(resolve => setTimeout(resolve, 1000));
 

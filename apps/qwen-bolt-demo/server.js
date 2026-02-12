@@ -109,7 +109,7 @@ app.prepare().then(() => {
           // macOS/Linux: use Python's pty module
           // This is a pure stdlib approach that doesn't require compiling native modules
           // The -u flag forces Python to use unbuffered I/O, which is critical for real-time terminal
-          const shell = process.env.SHELL || '/bin/zsh';
+          const shell = process.env.SHELL || (process.platform === 'linux' ? '/bin/bash' : '/bin/zsh');
           
           // Override the prompt env var to hide long paths, showing only the current directory name or a custom prompt
           // Note: different shells use different env vars for the prompt; this mainly targets Zsh/Bash
@@ -120,6 +120,11 @@ app.prepare().then(() => {
               // \W: basename of cwd, \$: prompt char
               PS1: '\\W \\$ ', 
           };
+
+          // Fix for "vite: not found": Ensure local node_modules/.bin is in PATH
+          // This is critical when running inside Docker/Temp folders where global npm packages might not be visible
+          const localBinPath = require('path').join(cwd, 'node_modules', '.bin');
+          env.PATH = `${localBinPath}:${env.PATH}`;
           
           const pythonScript = `import pty; pty.spawn("${shell}")`;
           

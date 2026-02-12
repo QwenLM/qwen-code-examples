@@ -209,6 +209,16 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
                     setSessionId(parsed.sessionId);
                   }
 
+                  if (parsed.type === 'auth_required') {
+                    const authMsg: Message = {
+                      id: `auth_${Date.now()}`,
+                      role: 'assistant',
+                      content: `**Authorization Required**\n\nPlease [click here to authorize the application](${parsed.url}).\n\nAfter you have authorized in the new window, this chat will continue automatically.`,
+                      timestamp: new Date(),
+                    };
+                    setMessages(prev => [...prev, authMsg]);
+                  }
+
                   if (parsed.type === 'file_updated') {
                     // Legacy polling trigger - can be removed eventually
                     if (currentSessionId && !onFileUpdate) {

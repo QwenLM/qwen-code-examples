@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  qwen-bolt:
+    # 构建上下文为当前目录
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # 容器名称
+    container_name: qwen-bolt-demo
+    
+    # 端口映射: 宿主机端口:容器端口
+    ports:
+      - "3000:3000"
+    
+    # 环境变量配置
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # 如果你需要配置 API Key（取决于代码是否支持从 env 读取）
+      # - QWEN_API_KEY=sk-xxxx
+    
+    # 数据卷挂载 - 用于持久化用户的工作区
+    # 代码中使用 os.tmpdir() + /qwen-bolt 作为工作区
+    volumes:
+      - bolt_workspaces:/tmp/qwen-bolt
+    
+    # 自动重启策略
+    restart: unless-stopped
+
+    # 资源限制（可选，防止构建任务占用过多资源）
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 4G
+
+# 定义数据卷
+volumes:
+  bolt_workspaces:
