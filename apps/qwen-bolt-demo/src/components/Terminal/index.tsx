@@ -11,6 +11,8 @@ interface TerminalProps {
   readonly?: boolean;
 }
 
+const SHELL_PROMPT_CHARS = ['$', '>'];
+
 const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
@@ -72,14 +74,12 @@ const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
 
     // Handle resize
     const resizeObserver = new ResizeObserver(() => {
-      // Use requestAnimationFrame to debounce and throttle resize
       requestAnimationFrame(() => {
         if (!fitAddonRef.current || !terminalRef.current) return;
         
         try {
           fitAddonRef.current.fit();
           
-          // Propagate resize to shell if it exists
           if (shellProcessRef.current) {
             const { cols, rows } = terminalRef.current;
             shellProcessRef.current.resize({ cols, rows });
@@ -117,8 +117,6 @@ const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
 
         term.writeln('\x1b[34mWebContainer connected. Starting jsh...\x1b[0m');
 
-        // Spawn jsh (bash-like shell)
-        // We do NOT use 'sh' because jsh is optimized for WebContainer
         const shellProcess = await webcontainer.spawn('jsh', {
           terminal: {
             cols: term.cols,
@@ -128,28 +126,35 @@ const Terminal = memo(({ className = '', readonly = false }: TerminalProps) => {
 
         shellProcessRef.current = shellProcess;
         
-        // Pipe output directly to xterm
+        // Track whether shell prompt has appeared (shell is ready for input)
+        let shellReady = false;
+        
+        // Pipe output directly to xterm, detect shell readiness
         shellProcess.output.pipeTo(
           new WritableStream({
-            write(data) {
+            write(data: string) {
               term.write(data);
+              
+              // Detect shell prompt: jsh shows prompt chars when ready
+              if (!shellReady && SHELL_PROMPT_CHARS.some(ch => data.includes(ch))) {
+                shellReady = true;
+                console.log('[Terminal] Shell is ready, dispatching shell-ready event');
+                window.dispatchEvent(new CustomEvent('bolt:shell-ready'));
+              }
             },
           })
         );
 
         // Pipe input from xterm to shell
         const input = shellProcess.input.getWriter();
-        const disposable = term.onData((data) => {
+        const disposable = term.onData((data: string) => {
           input.write(data);
         });
 
-        // External commands listener (if needed by other components)
+        // External commands listener
         const handleCommand = async (e: CustomEvent) => {
           const { command } = e.detail;
           if (command) {
-            // Write command to terminal for visual feedback
-            // Note: writing to valid jsh input usually echoes back, 
-            // but for automated commands we might want to simulate typing
             input.write(command + '\r');
           }
         };

@@ -144,13 +144,32 @@ export function useDevServer(sessionId: string, files: Record<string, string>) {
           // Dispatch install + dev command to the terminal shell
           // HOST=0.0.0.0 is already configured via .env file written at boot time,
           // so the user can also manually run these commands and preview will still work
-          setTimeout(() => {
-            const command = `${cdCommand}npm install && ${devScript}`;
+          const command = `${cdCommand}npm install && ${devScript}`;
+          
+          let dispatched = false;
+          const dispatchCommand = () => {
+            if (dispatched) return;
+            dispatched = true;
             console.log('[DevServer] Dispatching command:', command);
             window.dispatchEvent(new CustomEvent('bolt:run-command', { 
-                detail: { command } 
+              detail: { command } 
             }));
-          }, 500);
+          };
+
+          // Wait for shell to be ready before sending command
+          const shellReadyHandler = () => {
+            window.removeEventListener('bolt:shell-ready', shellReadyHandler);
+            // Brief delay to let the prompt fully render
+            setTimeout(dispatchCommand, 150);
+          };
+
+          window.addEventListener('bolt:shell-ready', shellReadyHandler);
+          
+          // Fallback: if shell-ready was already fired before we started listening
+          setTimeout(() => {
+            window.removeEventListener('bolt:shell-ready', shellReadyHandler);
+            dispatchCommand();
+          }, 2000);
 
       } else {
           setServerError('No package.json found');
