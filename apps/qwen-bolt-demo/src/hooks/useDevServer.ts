@@ -144,7 +144,9 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
           // Dispatch install + dev command to the terminal shell
           // HOST=0.0.0.0 is already configured via .env file written at boot time,
           // so the user can also manually run these commands and preview will still work
-          const command = `${cdCommand}npm install && ${devScript}`;
+          // Remove package-lock.json first to avoid platform-specific optional dependency
+          // issues in WebContainer (e.g. @rollup/rollup-linux-x64-musl not found)
+          const command = `${cdCommand}rm -f package-lock.json && npm install && ${devScript}`;
           
           let dispatched = false;
           const dispatchCommand = () => {
