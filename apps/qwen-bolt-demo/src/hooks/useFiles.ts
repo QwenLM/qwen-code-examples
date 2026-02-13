@@ -42,8 +42,13 @@ export function useFiles(initialSessionId: string = '') {
       for (const entry of entries) {
         const entryPath = dirPath ? `${dirPath}/${entry.name}` : entry.name;
 
-        // Skip node_modules, .git, and hidden directories
+        // Skip node_modules, .git, hidden directories, and system config files
         if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '.cache') {
+          continue;
+        }
+
+        // Skip system config files written by useDevServer at the root level
+        if (!dirPath && (entry.name === '.npmrc' || entry.name === '.env')) {
           continue;
         }
 

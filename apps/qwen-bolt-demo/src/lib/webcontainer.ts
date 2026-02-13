@@ -22,7 +22,9 @@ export async function getWebContainer(): Promise<WebContainer> {
   }
 
   console.log('[WebContainer] Booting...');
-  globalContext._webcontainerBootPromise = WebContainer.boot();
+  globalContext._webcontainerBootPromise = WebContainer.boot({
+    workdirName: 'project',
+  });
   
   try {
     globalContext._webcontainerInstance = await globalContext._webcontainerBootPromise;
