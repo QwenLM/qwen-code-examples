@@ -132,6 +132,18 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     resetSettings,
   }), [settings, isLoaded, updateKnowledge, addFiles, removeFile, clearAllFiles, updateModelConfig, resetSettings]);
 
+  // Delay rendering children until settings are loaded from localStorage.
+  // This prevents hydration mismatch: SSR renders with DEFAULT_SETTINGS,
+  // but the client may load different settings from localStorage, causing
+  // components like ModelSelector to render different content.
+  if (!isLoaded) {
+    return (
+      <ProjectContext.Provider value={value}>
+        {null}
+      </ProjectContext.Provider>
+    );
+  }
+
   return (
     <ProjectContext.Provider value={value}>
       {children}
