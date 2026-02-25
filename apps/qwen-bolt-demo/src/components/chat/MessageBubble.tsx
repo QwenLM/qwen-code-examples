@@ -4,7 +4,7 @@ import { File, Folder } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import type { AttachedFileItem } from './AttachedFilesDisplay';
 
-interface UserMessageBubbleProps {
+export interface UserMessageBubbleProps {
   content: string;
   attachedFiles?: AttachedFileItem[];
 }
@@ -71,7 +71,7 @@ export function UserMessageBubble({ content, attachedFiles }: UserMessageBubbleP
   );
 }
 
-interface AssistantMessageBubbleProps {
+export interface AssistantMessageBubbleProps {
   content: string;
 }
 

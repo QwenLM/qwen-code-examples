@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 
-interface ChatPanelProps {
+export interface ChatPanelProps {
   /** Header area (e.g. ChatHeader component) */
   header: ReactNode;
   /** Message list area */

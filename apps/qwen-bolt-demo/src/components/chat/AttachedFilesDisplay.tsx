@@ -13,7 +13,7 @@ export interface AttachedFileItem {
   fileCount?: number;
 }
 
-interface AttachedFilesDisplayProps {
+export interface AttachedFilesDisplayProps {
   attachedFiles: AttachedFileItem[];
   onFileRemoved?: (fileId: string) => void;
   onFolderRemoved?: (folderName: string) => void;
