@@ -20,6 +20,10 @@ export const MultiFileCodeRenderer: React.FC<
   onSelectFile,
   tabBarExtraContent,
   sessionId,
+  onCreateFile,
+  onCreateFolder,
+  onDeleteFile,
+  onRenameFile,
 }) => {
   // Derive effective active file from props
   // We sort keys to ensure deterministic behavior
@@ -197,6 +201,10 @@ export const MultiFileCodeRenderer: React.FC<
               onSearchChange={setSearchQuery}
               isSearchOpen={isSearchOpen}
               onSearchOpenChange={setIsSearchOpen}
+              onCreateFile={onCreateFile}
+              onCreateFolder={onCreateFolder}
+              onDeleteFile={onDeleteFile}
+              onRenameFile={onRenameFile}
             />
           </div>
           

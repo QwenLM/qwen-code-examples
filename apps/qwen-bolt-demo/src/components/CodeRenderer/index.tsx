@@ -13,6 +13,10 @@ interface CodeRendererProps {
   activeFile?: string;
   onSelectFile?: (path: string) => void;
   sessionId?: string;
+  onCreateFile?: (path: string, content: string) => void;
+  onCreateFolder?: (path: string) => void;
+  onDeleteFile?: (path: string) => void;
+  onRenameFile?: (oldPath: string, newPath: string) => void;
 }
 
 const CodeRenderer: React.FC<CodeRendererProps> = ({
@@ -25,6 +29,10 @@ const CodeRenderer: React.FC<CodeRendererProps> = ({
   activeFile,
   onSelectFile,
   sessionId,
+  onCreateFile,
+  onCreateFolder,
+  onDeleteFile,
+  onRenameFile,
 }) => {
   // Handle multi-file content change
   const handleMultiFileContentChange = (code: string, filename: string) => {
@@ -45,6 +53,10 @@ const CodeRenderer: React.FC<CodeRendererProps> = ({
         activeFile={activeFile}
         onSelectFile={onSelectFile}
         sessionId={sessionId}
+        onCreateFile={onCreateFile}
+        onCreateFolder={onCreateFolder}
+        onDeleteFile={onDeleteFile}
+        onRenameFile={onRenameFile}
       />
     </div>
   );

@@ -46,27 +46,19 @@ export function PreviewPanel({
 
   return (
     <div className={containerClass}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{t('preview.title')} {isFullscreen ? `(${t('preview.fullscreen')})` : ''}</h2>
-          {devServer && !isFullscreen && (
-            <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
-              {devServer.framework} • Port {devServer.port}
-            </span>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Tooltip content={isFullscreen ? t('preview.exitFullscreen') : t('preview.enterFullscreen')} side="bottom">
+      {/* Fullscreen toggle — floating button in top-right corner */}
+      {isFullscreen && (
+        <div className="absolute top-2 right-2 z-10">
+          <Tooltip content={t('preview.exitFullscreen')} side="bottom">
             <button
               onClick={toggleFullscreen}
-              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-1.5 bg-white/80 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 rounded shadow-md backdrop-blur-sm transition-colors"
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" /> : <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
+              <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           </Tooltip>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className={`flex-1 relative ${previewUrl ? 'bg-white' : 'bg-white dark:bg-gray-900'}`}>

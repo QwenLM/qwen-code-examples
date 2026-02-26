@@ -1,4 +1,11 @@
-export interface MultiFileCodeRendererProps {
+export interface FileOperations {
+  onCreateFile?: (path: string, content: string) => void;
+  onCreateFolder?: (path: string) => void;
+  onDeleteFile?: (path: string) => void;
+  onRenameFile?: (oldPath: string, newPath: string) => void;
+}
+
+export interface MultiFileCodeRendererProps extends FileOperations {
   files: Record<string, string>;
   readOnly?: boolean;
   isComplete?: boolean;
@@ -17,7 +24,7 @@ export interface CodeEditorPanelProps {
   searchQuery?: string;
 }
 
-export interface FileTreeProps {
+export interface FileTreeProps extends FileOperations {
   files: Record<string, string>;
   activeFile: string;
   onSelectFile: (path: string) => void;

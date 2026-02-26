@@ -96,6 +96,131 @@ export function useFiles(initialSessionId: string = '') {
     }
   }, [webcontainer, readDirectoryRecursive, activeFile]);
 
+  // Delete a file or directory from both React state and WebContainer FS
+  const deleteFile = useCallback(async (path: string) => {
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Remove from local state (handle both files and directories)
+    setFiles(prev => {
+      const next: Record<string, string> = {};
+      for (const [filePath, content] of Object.entries(prev)) {
+        // Skip exact match or any file under this directory
+        if (filePath === cleanPath || filePath.startsWith(cleanPath + '/')) {
+          continue;
+        }
+        next[filePath] = content;
+      }
+      return next;
+    });
+
+    // Clear active file if it was deleted
+    setActiveFile(prev => {
+      if (prev === cleanPath || prev.startsWith(cleanPath + '/')) {
+        return '';
+      }
+      return prev;
+    });
+
+    // Remove from WebContainer FS
+    if (webcontainer) {
+      try {
+        await webcontainer.fs.rm(cleanPath, { recursive: true });
+        logger.debug('[useFiles] Deleted from WebContainer:', cleanPath);
+      } catch (err) {
+        console.error('[useFiles] Failed to delete from WebContainer:', cleanPath, err);
+      }
+    }
+  }, [webcontainer]);
+
+  // Rename a file or directory
+  const renameFile = useCallback(async (oldPath: string, newPath: string) => {
+    const cleanOldPath = oldPath.startsWith('/') ? oldPath.substring(1) : oldPath;
+    const cleanNewPath = newPath.startsWith('/') ? newPath.substring(1) : newPath;
+
+    // Update local state: move all files under oldPath to newPath
+    setFiles(prev => {
+      const next: Record<string, string> = {};
+      for (const [filePath, content] of Object.entries(prev)) {
+        if (filePath === cleanOldPath) {
+          next[cleanNewPath] = content;
+        } else if (filePath.startsWith(cleanOldPath + '/')) {
+          const relativePart = filePath.substring(cleanOldPath.length);
+          next[cleanNewPath + relativePart] = content;
+        } else {
+          next[filePath] = content;
+        }
+      }
+      return next;
+    });
+
+    // Update active file if it was renamed
+    setActiveFile(prev => {
+      if (prev === cleanOldPath) return cleanNewPath;
+      if (prev.startsWith(cleanOldPath + '/')) {
+        return cleanNewPath + prev.substring(cleanOldPath.length);
+      }
+      return prev;
+    });
+
+    // Rename in WebContainer FS (read → write new → delete old)
+    if (webcontainer) {
+      try {
+        // Check if it's a file or directory by trying to read it
+        const isDirectory = await webcontainer.fs.readdir(cleanOldPath, { withFileTypes: true })
+          .then(() => true)
+          .catch(() => false);
+
+        if (isDirectory) {
+          // For directories, recursively copy contents then delete old
+          const copyRecursive = async (srcDir: string, destDir: string) => {
+            await webcontainer.fs.mkdir(destDir, { recursive: true });
+            const entries = await webcontainer.fs.readdir(srcDir, { withFileTypes: true });
+            for (const entry of entries) {
+              const srcPath = `${srcDir}/${entry.name}`;
+              const destPath = `${destDir}/${entry.name}`;
+              if (entry.isDirectory()) {
+                await copyRecursive(srcPath, destPath);
+              } else {
+                const content = await webcontainer.fs.readFile(srcPath, 'utf-8');
+                await webcontainer.fs.writeFile(destPath, content);
+              }
+            }
+          };
+          await copyRecursive(cleanOldPath, cleanNewPath);
+        } else {
+          // For files, read content → create parent dir → write new → delete old
+          const content = await webcontainer.fs.readFile(cleanOldPath, 'utf-8');
+          const newParts = cleanNewPath.split('/');
+          if (newParts.length > 1) {
+            await webcontainer.fs.mkdir(newParts.slice(0, -1).join('/'), { recursive: true });
+          }
+          await webcontainer.fs.writeFile(cleanNewPath, content);
+        }
+        await webcontainer.fs.rm(cleanOldPath, { recursive: true });
+        logger.debug('[useFiles] Renamed in WebContainer:', cleanOldPath, '→', cleanNewPath);
+      } catch (err) {
+        console.error('[useFiles] Failed to rename in WebContainer:', err);
+      }
+    }
+  }, [webcontainer]);
+
+  // Create an empty directory in both React state and WebContainer FS
+  const createFolder = useCallback(async (path: string) => {
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Add a placeholder entry so the folder appears in the file tree
+    // We use a convention: folders are tracked by having at least one file inside
+    // But for empty folders, we need to create them in WebContainer FS
+    if (webcontainer) {
+      try {
+        await webcontainer.fs.mkdir(cleanPath, { recursive: true });
+        logger.debug('[useFiles] Created folder in WebContainer:', cleanPath);
+      } catch (err) {
+        console.error('[useFiles] Failed to create folder in WebContainer:', cleanPath, err);
+      }
+    }
+  }, [webcontainer]);
+
   return {
     files,
     setFiles,
@@ -104,6 +229,9 @@ export function useFiles(initialSessionId: string = '') {
     sessionId,
     setSessionId,
     loadAllFiles,
-    updateFile
+    updateFile,
+    deleteFile,
+    renameFile,
+    createFolder
   };
 }

@@ -43,7 +43,10 @@ function WorkspaceContent() {
     sessionId, 
     setSessionId, 
     loadAllFiles,
-    updateFile 
+    updateFile,
+    deleteFile,
+    renameFile,
+    createFolder
   } = useFiles(initialSessionId);
 
   // 2. Chat Management
@@ -248,6 +251,22 @@ function WorkspaceContent() {
                 onSaveFile={(path, content) => {
                   logger.debug('[Workspace] Saving file:', path);
                   updateFile(path, content);
+                }}
+                onCreateFile={(path, content) => {
+                  logger.debug('[Workspace] Creating file:', path);
+                  updateFile(path, content);
+                }}
+                onCreateFolder={(path) => {
+                  logger.debug('[Workspace] Creating folder:', path);
+                  createFolder(path);
+                }}
+                onDeleteFile={(path) => {
+                  logger.debug('[Workspace] Deleting:', path);
+                  deleteFile(path);
+                }}
+                onRenameFile={(oldPath, newPath) => {
+                  logger.debug('[Workspace] Renaming:', oldPath, '→', newPath);
+                  renameFile(oldPath, newPath);
                 }}
               />
             </div>

@@ -52,7 +52,8 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
             }
             if (session.files && Object.keys(session.files).length > 0 && onFilesLoaded) {
                logger.debug('[useChat] Loaded files from DB for session:', sessionId);
-               onFilesLoaded(session.files);
+               const { filterExcludedFiles } = await import('@/lib/file-utils');
+               onFilesLoaded(filterExcludedFiles(session.files));
             }
           }
         } catch (e) {

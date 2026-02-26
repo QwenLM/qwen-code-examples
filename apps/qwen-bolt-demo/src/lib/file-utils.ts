@@ -26,7 +26,22 @@ export async function downloadProjectAsZip(files: Record<string, string>, projec
 // Lock files generated on the host platform may contain platform-specific optional
 // dependencies (e.g. @rollup/rollup-darwin-arm64) that break npm install inside
 // WebContainer (Linux). Filter them out before mounting.
-const EXCLUDED_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
+export const EXCLUDED_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
+
+/**
+ * Remove lock files and other excluded entries from a file map.
+ * Used when restoring files from history (IndexedDB) or server responses.
+ */
+export function filterExcludedFiles(files: Record<string, string>): Record<string, string> {
+  const filtered: Record<string, string> = {};
+  for (const [path, content] of Object.entries(files)) {
+    const fileName = path.split('/').pop() || '';
+    if (!EXCLUDED_FILES.has(fileName)) {
+      filtered[path] = content;
+    }
+  }
+  return filtered;
+}
 
 export function convertFilesToTree(files: Record<string, string>): FileSystemTree {
   const tree: FileSystemTree = {};
