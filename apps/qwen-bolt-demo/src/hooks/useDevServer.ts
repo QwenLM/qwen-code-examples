@@ -2,14 +2,20 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { DevServer } from '@/components/workspace';
 import { useWebContainer } from './useWebContainer';
 import { convertFilesToTree, findProjectRoot } from '@/lib/file-utils';
+import logger from '@/lib/logger';
 
 export type ProjectType = 'node' | 'static-html' | 'empty';
 
-// .npmrc content for faster npm install using China mirror
+// .npmrc content optimized for fast npm install in WebContainer
 const NPMRC_CONTENT = `registry=https://registry.npmmirror.com
 fetch-retries=3
 fetch-retry-mintimeout=5000
 fetch-retry-maxtimeout=30000
+prefer-offline=true
+audit=false
+fund=false
+loglevel=error
+update-notifier=false
 `;
 
 export function useDevServer(sessionId: string, files: Record<string, string>, isChatLoading: boolean = false) {
@@ -158,7 +164,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
       if (fileCount === lastMountedFilesCountRef.current) return;
 
       try {
-        console.log('[DevServer] Mounting files to WebContainer FS:', fileCount, '(was:', lastMountedFilesCountRef.current, ')');
+        logger.debug('[DevServer] Mounting files to WebContainer FS:', fileCount, '(was:', lastMountedFilesCountRef.current, ')');
         const tree = convertFilesToTree(files);
         await webcontainer.mount(tree);
         lastMountedFilesCountRef.current = fileCount;
@@ -193,7 +199,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
         await webcontainer.fs.writeFile('.env', 'HOST=0.0.0.0\n');
         
         npmrcWrittenRef.current = true;
-        console.log('[DevServer] .npmrc and .env written to WebContainer');
+        logger.debug('[DevServer] .npmrc and .env written to WebContainer');
         setDevServerLogs(prev => [...prev, '[System] npm mirror and host binding configured.']);
       } catch (error) {
         console.warn('[DevServer] Failed to write config files:', error);
@@ -208,7 +214,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
     if (!webcontainer) return;
 
     const handleServerReady = (port: number, url: string) => {
-      console.log('[DevServer] Server Ready:', url);
+      logger.debug('[DevServer] Server Ready:', url);
       setPreviewUrl(url);
       setDevServer({
         port,
@@ -235,7 +241,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
     try {
       const fileCount = Object.keys(files).length;
       if (fileCount > 0) {
-        console.log('[DevServer] Pre-start mount: syncing', fileCount, 'files to WebContainer FS');
+        logger.debug('[DevServer] Pre-start mount: syncing', fileCount, 'files to WebContainer FS');
         const tree = convertFilesToTree(files);
         await webcontainer.mount(tree);
         lastMountedFilesCountRef.current = fileCount;
@@ -270,15 +276,16 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
           // Dispatch install + dev command to the terminal shell
           // HOST=0.0.0.0 is already configured via .env file written at boot time,
           // so the user can also manually run these commands and preview will still work
-          // Remove package-lock.json first to avoid platform-specific optional dependency
-          // issues in WebContainer (e.g. @rollup/rollup-linux-x64-musl not found)
-          const command = `${cdCommand}rm -f package-lock.json && npm install && ${devScript}`;
+          // Lock files are already filtered out during file mounting (see file-utils.ts).
+          // Use --prefer-offline to leverage WebContainer's internal cache when available,
+          // and skip audit/fund/progress for faster install.
+          const command = `${cdCommand}npm install --prefer-offline --no-audit --no-fund && ${devScript}`;
           
           let dispatched = false;
           const dispatchCommand = () => {
             if (dispatched) return;
             dispatched = true;
-            console.log('[DevServer] Dispatching command:', command);
+            logger.debug('[DevServer] Dispatching command:', command);
             window.dispatchEvent(new CustomEvent('bolt:run-command', { 
               detail: { command } 
             }));
@@ -329,7 +336,7 @@ export function useDevServer(sessionId: string, files: Record<string, string>, i
 
     if (!hasPackageJson) return;
 
-    console.log('[DevServer] Auto-start: WebContainer ready + files available + chat idle, starting dev server...');
+        logger.debug('[DevServer] Auto-start: WebContainer ready + files available + chat idle, starting dev server...');
     hasAutoStartedRef.current = true;
     startDevServer();
   }, [webcontainer, isWebContainerLoading, files, isStartingServer, startDevServer, isChatLoading]);

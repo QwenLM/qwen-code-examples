@@ -13,6 +13,7 @@ import { CodeEditorPanelProps } from './types';
 import { getLanguageFromFilename } from './utils';
 import { useEditor } from '@/contexts/EditorContext';
 import { useTheme } from 'next-themes';
+import logger from '@/lib/logger';
 
 export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   file,
@@ -22,7 +23,7 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   onChange,
   searchQuery,
 }) => {
-  console.log(`[CodeEditorPanel] Render. File: ${file}, ReadOnly: ${readOnly}, CodeLen: ${code?.length}, Preview: ${code?.slice(0, 30).replace(/\n/g, '\\n')}...`);
+  logger.debug(`[CodeEditorPanel] Render. File: ${file}, ReadOnly: ${readOnly}, CodeLen: ${code?.length}, Preview: ${code?.slice(0, 30).replace(/\n/g, '\\n')}...`);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -88,7 +89,7 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
             // Validate if this is an external sync update
             const isExternal = update.transactions.some(tr => tr.annotation(SyncAnnotation));
             if (isExternal) {
-                console.log('[CodeEditorPanel] Skipping onChange for external sync update');
+                logger.debug('[CodeEditorPanel] Skipping onChange for external sync update');
             } else {
               // console.log('[CodeEditorPanel] Triggering onChange from user input');
               const newCode = update.state.doc.toString();
@@ -147,10 +148,10 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   // Update code content
   useEffect(() => {
     const currentDoc = viewRef.current?.state.doc.toString();
-    console.log(`[CodeEditorPanel] Effect[code]. File: ${file}, PropCodeLen: ${code?.length}, CurrentDocLen: ${currentDoc?.length}, NeedsUpdate: ${viewRef.current && code !== currentDoc}`);
+    logger.debug(`[CodeEditorPanel] Effect[code]. File: ${file}, PropCodeLen: ${code?.length}, CurrentDocLen: ${currentDoc?.length}, NeedsUpdate: ${viewRef.current && code !== currentDoc}`);
     
     if (viewRef.current && code !== viewRef.current.state.doc.toString()) {
-      console.log('[CodeEditorPanel] Dispatching Sync Transaction...');
+      logger.debug('[CodeEditorPanel] Dispatching Sync Transaction...');
       const transaction = viewRef.current.state.update({
         changes: {
           from: 0,

@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useProject } from '@/contexts/ProjectContext';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
+import logger from '@/lib/logger';
 
 export function ModelSelector({ align = 'right' }: { align?: 'left' | 'right' }) {
   const { t } = useTranslation();
@@ -30,10 +31,10 @@ export function ModelSelector({ align = 'right' }: { align?: 'left' | 'right' })
   }, [isOpen]);
 
   const handleModelSelect = (model: string) => {
-    console.log('[ModelSelector] Selecting model:', model);
-    console.log('[ModelSelector] Current model before update:', settings.modelConfig.model);
+    logger.debug('[ModelSelector] Selecting model:', model);
+    logger.debug('[ModelSelector] Current model before update:', settings.modelConfig.model);
     updateModelConfig({ model });
-    console.log('[ModelSelector] updateModelConfig called');
+    logger.debug('[ModelSelector] updateModelConfig called');
     setIsOpen(false);
   };
 
@@ -41,7 +42,7 @@ export function ModelSelector({ align = 'right' }: { align?: 'left' | 'right' })
   
   // Debug log
   useEffect(() => {
-    console.log('[ModelSelector] Current model changed to:', currentModel);
+    logger.debug('[ModelSelector] Current model changed to:', currentModel);
   }, [currentModel]);
   
   const displayName = currentModel.includes('qwen-coder-plus')

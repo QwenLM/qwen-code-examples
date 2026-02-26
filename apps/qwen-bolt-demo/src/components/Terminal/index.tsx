@@ -5,6 +5,7 @@ import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { useTheme } from 'next-themes';
 import { useWebContainer } from '../../hooks/useWebContainer';
+import logger from '@/lib/logger';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
@@ -167,6 +168,9 @@ const Terminal = memo(({ className = '', readonly = false, isPrimary = false }: 
     if (isLoading || !webcontainer || !terminalRef.current || initializedRef.current) return;
 
     const startShell = async () => {
+      const maxRetries = 3;
+      const retryDelayMs = 2000;
+
       try {
         initializedRef.current = true;
         const term = terminalRef.current!;
@@ -178,12 +182,30 @@ const Terminal = memo(({ className = '', readonly = false, isPrimary = false }: 
 
         term.writeln('\x1b[34mWebContainer connected. Starting jsh...\x1b[0m');
 
-        const shellProcess = await webcontainer.spawn('jsh', {
-          terminal: {
-            cols: term.cols,
-            rows: term.rows,
-          },
-        });
+        let shellProcess: any = null;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            shellProcess = await webcontainer.spawn('jsh', {
+              terminal: {
+                cols: term.cols,
+                rows: term.rows,
+              },
+            });
+            break;
+          } catch (spawnError: any) {
+            if (attempt < maxRetries && spawnError?.message?.includes('MODULE_NOT_FOUND')) {
+              term.writeln(`\x1b[33mjsh not ready, retrying (${attempt}/${maxRetries})...\x1b[0m`);
+              await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+            } else {
+              throw spawnError;
+            }
+          }
+        }
+
+        if (!shellProcess) {
+          term.writeln('\x1b[33mShell unavailable. Terminal is in read-only mode.\x1b[0m');
+          return;
+        }
 
         shellProcessRef.current = shellProcess;
         
@@ -199,7 +221,7 @@ const Terminal = memo(({ className = '', readonly = false, isPrimary = false }: 
               // Only the primary terminal emits shell-ready for auto-start
               if (isPrimary && !shellReady && SHELL_PROMPT_CHARS.some(ch => data.includes(ch))) {
                 shellReady = true;
-                console.log('[Terminal] Shell is ready, dispatching shell-ready event');
+                logger.debug('[Terminal] Shell is ready, dispatching shell-ready event');
                 window.dispatchEvent(new CustomEvent('bolt:shell-ready'));
               }
             },

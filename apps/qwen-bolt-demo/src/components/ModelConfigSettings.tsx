@@ -7,6 +7,7 @@ import { useProject } from '@/contexts/ProjectContext';
 import { useTranslation } from 'react-i18next';
 import type { ModelConfig } from '@/contexts/ProjectContext';
 import { Tooltip } from '@/components/ui/Tooltip';
+import logger from '@/lib/logger';
 
 export function ModelConfigSettings() {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ export function ModelConfigSettings() {
   }, [settings.modelConfig, isOpen]);
 
   const handleSave = () => {
-    console.log('[ModelConfigSettings] Saving config:', modelConfig);
+    logger.debug('[ModelConfigSettings] Saving config:', modelConfig);
     updateModelConfig(modelConfig);
     setIsOpen(false);
   };

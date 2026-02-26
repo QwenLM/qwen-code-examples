@@ -2,6 +2,7 @@
 
 import { Code2, Maximize2, Minimize2, FileCode2, Globe } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { ProjectType } from '@/hooks/useDevServer';
 
@@ -32,6 +33,7 @@ export function PreviewPanel({
   projectType = 'empty',
   isChatLoading = false,
 }: PreviewPanelProps) {
+  const { t } = useTranslation();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
@@ -47,7 +49,7 @@ export function PreviewPanel({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Preview {isFullscreen ? '(Fullscreen)' : ''}</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{t('preview.title')} {isFullscreen ? `(${t('preview.fullscreen')})` : ''}</h2>
           {devServer && !isFullscreen && (
             <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
               {devServer.framework} • Port {devServer.port}
@@ -55,7 +57,7 @@ export function PreviewPanel({
           )}
         </div>
         <div className="flex gap-2">
-          <Tooltip content={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"} side="bottom">
+          <Tooltip content={isFullscreen ? t('preview.exitFullscreen') : t('preview.enterFullscreen')} side="bottom">
             <button
               onClick={toggleFullscreen}
               className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
@@ -83,46 +85,46 @@ export function PreviewPanel({
                   <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                     <div className="w-10 h-10 border-3 border-blue-400 border-t-transparent rounded-full animate-spin" />
                   </div>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">Generating...</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{t('preview.generating')}</p>
                   <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                    AI is generating your project, preview will appear automatically
+                    {t('preview.generatingDesc')}
                   </p>
                 </>
               ) : projectType === 'static-html' ? (
                 <>
                   <FileCode2 className="w-16 h-16 mx-auto mb-4 opacity-30 text-blue-400 dark:text-blue-500" />
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">Preparing HTML Preview</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{t('preview.preparingHtml')}</p>
                   <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                    Static HTML files will be previewed directly
+                    {t('preview.preparingHtmlDesc')}
                   </p>
                 </>
               ) : projectType === 'node' && hasFiles ? (
                 <>
                   <Globe className="w-16 h-16 mx-auto mb-4 opacity-30 text-green-400 dark:text-green-500" />
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">No Preview Available</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{t('preview.noPreview')}</p>
                   {isStartingServer ? (
                     <div className="mt-4 flex items-center justify-center gap-2 text-blue-400">
                       <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm">Starting development server...</span>
+                      <span className="text-sm">{t('preview.startingServer')}</span>
                     </div>
                   ) : (
                     <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                      Run <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">npm install && npm run dev</code> in the terminal to start your app
+                      {t('preview.runCommand')}
                     </p>
                   )}
                 </>
               ) : (
                 <>
                   <Code2 className="w-16 h-16 mx-auto mb-4 opacity-30 text-gray-400 dark:text-gray-600" />
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">No files yet</p>
+                  <p className="text-lg font-medium text-gray-900 dark:text-white">{t('preview.noFiles')}</p>
                   <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                    Start chatting with AI to generate your project
+                    {t('preview.noFilesDesc')}
                   </p>
                 </>
               )}
               {serverError && (
                 <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs text-left">
-                  <p className="font-semibold mb-1">Error starting preview:</p>
+                  <p className="font-semibold mb-1">{t('preview.serverError')}</p>
                   <p className="font-mono">{serverError}</p>
                 </div>
               )}

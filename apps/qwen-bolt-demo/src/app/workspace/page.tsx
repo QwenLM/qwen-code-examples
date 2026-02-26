@@ -20,6 +20,7 @@ import {
 } from '@/components/workspace';
 import { ChatPanel } from '@/components/chat';
 import { downloadProjectAsZip } from '@/lib/file-utils';
+import logger from '@/lib/logger';
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -62,12 +63,12 @@ function WorkspaceContent() {
     setSessionId,
     loadAllFiles,
     onFileUpdate: (path, content) => {
-        console.log('[Workspace] Streamed file update:', path);
+        logger.debug('[Workspace] Streamed file update:', path);
         updateFile(path, content);
     },
     files, // Pass current files state
     onFilesLoaded: (loadedFiles) => {
-       console.log('[Workspace] Restoring files from history');
+       logger.debug('[Workspace] Restoring files from history');
        setFiles(loadedFiles);
     }
   });
@@ -146,7 +147,7 @@ function WorkspaceContent() {
           folderName: f.folderName || (f.type === 'folder' ? f.path.split('/')[0] : undefined)
         }));
         
-        console.log('[Workspace] Restoring attached files from Home:', filesToAttach);
+        logger.debug('[Workspace] Restoring attached files from Home:', filesToAttach);
 
         // Write files to the code panel so they are visible immediately
         filesToAttach.forEach(file => {
@@ -159,13 +160,13 @@ function WorkspaceContent() {
 
         // Send message with restored files directly to avoid state timing issues
         hasInitializedRef.current = true;
-        console.log('[Workspace] Sending initial prompt with restored files:', settings.modelConfig);
+        logger.debug('[Workspace] Sending initial prompt with restored files:', settings.modelConfig);
         sendMessage(initialPrompt, filesToAttach);
         return;
       }
 
       hasInitializedRef.current = true;
-      console.log('[Workspace] Sending initial prompt with loaded settings:', settings.modelConfig);
+      logger.debug('[Workspace] Sending initial prompt with loaded settings:', settings.modelConfig);
       sendMessage(initialPrompt);
     }
   }, [initialPrompt, messages.length, sendMessage, isLoaded, settings, setAttachedFiles, clearAllFiles]);
@@ -179,8 +180,7 @@ function WorkspaceContent() {
     window.open(previewUrl, '_blank');
   };
 
-  // Debug log
-  console.log('[Workspace Debug]', {
+  logger.debug('[Workspace Debug]', {
     sessionId,
     filesCount: Object.keys(files).length,
     previewUrl,
@@ -244,9 +244,9 @@ function WorkspaceContent() {
                 sessionId={sessionId}
                 isLoading={isLoading}
                 onSelectFile={setActiveFile}
-                onCodeChange={(code, filename) => console.log('Code changed:', filename)}
+                onCodeChange={(code, filename) => logger.debug('Code changed:', filename)}
                 onSaveFile={(path, content) => {
-                  console.log('[Workspace] Saving file:', path);
+                  logger.debug('[Workspace] Saving file:', path);
                   updateFile(path, content);
                 }}
               />

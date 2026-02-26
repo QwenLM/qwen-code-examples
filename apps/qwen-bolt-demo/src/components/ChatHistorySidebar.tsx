@@ -1,10 +1,50 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { MessageSquare, Trash2, User, Plus, Search, PanelLeftClose, X, Check } from 'lucide-react';
 import { getAllChatSessions, deleteChatSession, deleteAllChatSessions, type ChatSession } from '@/lib/chat-persistence';
+
+interface TimeGroup {
+  label: string;
+  sessions: ChatSession[];
+}
+
+function groupSessionsByTime(sessions: ChatSession[], labels: { today: string; yesterday: string; past7Days: string; older: string }): TimeGroup[] {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfYesterday = startOfToday - 86_400_000;
+  const startOfPast7Days = startOfToday - 6 * 86_400_000;
+
+  const groups: Record<string, ChatSession[]> = {
+    today: [],
+    yesterday: [],
+    past7Days: [],
+    older: [],
+  };
+
+  for (const session of sessions) {
+    const timestamp = session.updatedAt;
+    if (timestamp >= startOfToday) {
+      groups.today.push(session);
+    } else if (timestamp >= startOfYesterday) {
+      groups.yesterday.push(session);
+    } else if (timestamp >= startOfPast7Days) {
+      groups.past7Days.push(session);
+    } else {
+      groups.older.push(session);
+    }
+  }
+
+  const result: TimeGroup[] = [];
+  if (groups.today.length > 0) result.push({ label: labels.today, sessions: groups.today });
+  if (groups.yesterday.length > 0) result.push({ label: labels.yesterday, sessions: groups.yesterday });
+  if (groups.past7Days.length > 0) result.push({ label: labels.past7Days, sessions: groups.past7Days });
+  if (groups.older.length > 0) result.push({ label: labels.older, sessions: groups.older });
+
+  return result;
+}
 
 export function ChatHistorySidebar() {
   const { t } = useTranslation();
@@ -66,6 +106,18 @@ export function ChatHistorySidebar() {
 
   const filteredHistory = history.filter(session => 
     session.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const timeGroupLabels = useMemo(() => ({
+    today: t('chatHistory.today'),
+    yesterday: t('chatHistory.yesterday'),
+    past7Days: t('chatHistory.past7Days'),
+    older: t('chatHistory.older'),
+  }), [t]);
+
+  const groupedHistory = useMemo(
+    () => groupSessionsByTime(filteredHistory, timeGroupLabels),
+    [filteredHistory, timeGroupLabels]
   );
 
   return (
@@ -135,73 +187,77 @@ export function ChatHistorySidebar() {
                 </div>
             ) : (
                 <div className="px-3 space-y-1">
-                    <div className="px-3 py-2 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                        {t('chatHistory.recentChats')}
-                    </div>
-                    {filteredHistory.map((session) => {
-                        const isPendingDelete = pendingDeleteId === session.id;
-                        return (
-                        <div
-                            key={session.id}
-                            onClick={() => {
-                              if (isPendingDelete) return;
-                              router.push(`/workspace?sessionId=${session.id}`);
-                              setIsOpen(false);
-                            }}
-                            className={`group flex items-center justify-between gap-2 px-3 py-3 rounded-xl cursor-pointer transition-colors ${
-                              isPendingDelete 
-                                ? 'bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30' 
-                                : 'hover:bg-gray-100 dark:hover:bg-white/5'
-                            }`}
-                        >
-                            <div className="flex items-center gap-3 overflow-hidden">
+                    {groupedHistory.map((group) => (
+                      <div key={group.label}>
+                        <div className="px-3 py-2 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                          {group.label}
+                        </div>
+                        {group.sessions.map((session) => {
+                          const isPendingDelete = pendingDeleteId === session.id;
+                          return (
+                            <div
+                              key={session.id}
+                              onClick={() => {
+                                if (isPendingDelete) return;
+                                router.push(`/workspace?sessionId=${session.id}`);
+                                setIsOpen(false);
+                              }}
+                              className={`group flex items-center justify-between gap-2 px-3 py-3 rounded-xl cursor-pointer transition-colors ${
+                                isPendingDelete 
+                                  ? 'bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30' 
+                                  : 'hover:bg-gray-100 dark:hover:bg-white/5'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 overflow-hidden">
                                 <MessageSquare className={`w-4 h-4 shrink-0 ${isPendingDelete ? 'text-red-400' : 'text-gray-400 dark:text-gray-500'}`} />
                                 <div className="flex flex-col min-w-0">
-                                    {isPendingDelete ? (
-                                      <span className="text-sm text-red-600 dark:text-red-400 font-medium">
-                                        {t('chatHistory.deleteConfirm')}
+                                  {isPendingDelete ? (
+                                    <span className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                      {t('chatHistory.deleteConfirm')}
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span className="text-sm text-gray-700 dark:text-gray-200 truncate font-medium">
+                                        {session.title || t('chatHistory.untitled')}
                                       </span>
-                                    ) : (
-                                      <>
-                                        <span className="text-sm text-gray-700 dark:text-gray-200 truncate font-medium">
-                                            {session.title || t('chatHistory.untitled')}
-                                        </span>
-                                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                                            {new Date(session.updatedAt).toLocaleDateString()}
-                                        </span>
-                                      </>
-                                    )}
+                                      <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                                        {new Date(session.updatedAt).toLocaleDateString()}
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
-                            </div>
-                            {isPendingDelete ? (
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  onClick={(e) => handleConfirmDelete(e, session.id)}
-                                  className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
-                                  title={t('chatHistory.confirmDelete')}
-                                >
-                                  <Check className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={handleCancelDelete}
-                                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-400 transition-colors"
-                                  title={t('chatHistory.cancelDelete')}
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
                               </div>
-                            ) : (
-                              <button
-                                onClick={(e) => handleDeleteClick(e, session.id)}
-                                className="opacity-0 group-hover:opacity-100 p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-500 transition-all shrink-0"
-                                title={t('chatHistory.deleteTooltip')}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                        </div>
-                        );
-                    })}
+                              {isPendingDelete ? (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={(e) => handleConfirmDelete(e, session.id)}
+                                    className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                                    title={t('chatHistory.confirmDelete')}
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelDelete}
+                                    className="p-1.5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-400 transition-colors"
+                                    title={t('chatHistory.cancelDelete')}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={(e) => handleDeleteClick(e, session.id)}
+                                  className="opacity-0 group-hover:opacity-100 p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-500 transition-all shrink-0"
+                                  title={t('chatHistory.deleteTooltip')}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
                 </div>
             )}
         </div>

@@ -89,6 +89,22 @@
       "counter": "🧮 计数器应用"
     }
   },
+  "preview": {
+    "title": "预览",
+    "fullscreen": "全屏",
+    "enterFullscreen": "进入全屏",
+    "exitFullscreen": "退出全屏",
+    "generating": "生成中...",
+    "generatingDesc": "AI 正在生成你的项目，预览将自动显示",
+    "preparingHtml": "准备 HTML 预览",
+    "preparingHtmlDesc": "静态 HTML 文件将直接预览",
+    "noPreview": "暂无预览",
+    "startingServer": "正在启动开发服务器...",
+    "runCommand": "在终端中运行 npm install && npm run dev 来启动你的应用",
+    "noFiles": "暂无文件",
+    "noFilesDesc": "开始与 AI 对话来生成你的项目",
+    "serverError": "启动预览时出错："
+  },
   "chatHistory": {
     "title": "历史对话",
     "startNew": "开始新对话",
@@ -96,6 +112,10 @@
     "noMatching": "没有匹配的对话",
     "noRecent": "没有最近的对话",
     "recentChats": "最近对话",
+    "today": "今天",
+    "yesterday": "昨天",
+    "past7Days": "过去 7 天",
+    "older": "更早",
     "untitled": "未命名",
     "deleteConfirm": "确定删除？",
     "confirmDelete": "确认删除",

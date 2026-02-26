@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import logger from '@/lib/logger';
 
 export interface UploadedFile {
   id: string;
@@ -60,7 +61,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        console.log('[ProjectContext] Loading settings from localStorage:', stored);
+        logger.debug('[ProjectContext] Loading settings from localStorage:', stored);
         const parsed = JSON.parse(stored);
         // Merge with default settings to ensure new fields are present
         setSettings(prev => ({
@@ -106,13 +107,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateModelConfig = useCallback((config: Partial<ModelConfig>) => {
-    console.log('[ProjectContext] updateModelConfig called with:', config);
+    logger.debug('[ProjectContext] updateModelConfig called with:', config);
     setSettings(prev => {
       const newSettings = {
         ...prev,
         modelConfig: { ...prev.modelConfig, ...config },
       };
-      console.log('[ProjectContext] New settings:', newSettings);
+      logger.debug('[ProjectContext] New settings:', newSettings);
       return newSettings;
     });
   }, []);

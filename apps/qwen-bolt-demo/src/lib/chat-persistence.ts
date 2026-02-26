@@ -7,7 +7,7 @@ export interface ChatSession {
   files?: Record<string, string>;
 }
 
-const DB_NAME = 'qwen-bolt-demo-db';
+const DB_NAME = 'qwen-coder-db';
 const STORE_NAME = 'chat-sessions';
 const DB_VERSION = 1;
 

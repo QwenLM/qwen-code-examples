@@ -4,6 +4,7 @@ import type { ProjectSettings } from '@/contexts/ProjectContext';
 import { useToken } from '@/contexts/TokenContext';
 import { useProject } from '@/contexts/ProjectContext';
 import { saveChatSession, getChatSession } from '@/lib/chat-persistence';
+import logger from '@/lib/logger';
 
 interface UseChatProps {
   settings: ProjectSettings;
@@ -46,11 +47,11 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
           const session = await getChatSession(sessionId);
           if (session) {
             if (session.messages.length > 0) {
-              console.log('[useChat] Loaded history from DB for session:', sessionId);
+              logger.debug('[useChat] Loaded history from DB for session:', sessionId);
               setMessages(session.messages);
             }
             if (session.files && Object.keys(session.files).length > 0 && onFilesLoaded) {
-               console.log('[useChat] Loaded files from DB for session:', sessionId);
+               logger.debug('[useChat] Loaded files from DB for session:', sessionId);
                onFilesLoaded(session.files);
             }
           }
@@ -97,7 +98,7 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
   const settingsRef = useRef(settings);
   useEffect(() => {
     settingsRef.current = settings;
-    console.log('[useChat] Settings updated in ref (from Context):', settings.modelConfig);
+    logger.debug('[useChat] Settings updated in ref (from Context):', settings.modelConfig);
   }, [settings]);
 
   const sendMessage = useCallback(async (messageText?: string, extraFiles?: AttachedFile[]) => {
@@ -108,7 +109,7 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
     const currentSettings = settingsRef.current;
     
     // Double check directly from context if possible (though ref should be synced)
-    console.log('[useChat] sendMessage called. Current ref config:', currentSettings.modelConfig);
+    logger.debug('[useChat] sendMessage called. Current ref config:', currentSettings.modelConfig);
 
     // Merge extra files (e.g. from home page restore) with current attached files
     const currentAttachedFiles = extraFiles ? [...attachedFiles, ...extraFiles] : [...attachedFiles];
@@ -143,7 +144,7 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
         })),
       ];
 
-      console.log('[useChat] Sending request with config:', currentSettings.modelConfig);
+      logger.debug('[useChat] Sending request with config:', currentSettings.modelConfig);
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -230,7 +231,7 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
 
                     // Sync files from WebContainer FS after turn completes
                     setTimeout(() => {
-                      console.log('[useChat] Turn complete, syncing files from WebContainer FS');
+                      logger.debug('[useChat] Turn complete, syncing files from WebContainer FS');
                       loadAllFiles();
                     }, 500);
                     break;
@@ -261,7 +262,7 @@ export function useChat({ settings: propsSettings, sessionId, setSessionId, load
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
-         console.log('Request aborted by user');
+         logger.debug('Request aborted by user');
       } else if (error instanceof Error) {
         console.error('Error sending message:', error);
       }

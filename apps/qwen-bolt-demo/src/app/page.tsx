@@ -145,7 +145,7 @@ export default function Home() {
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder={t('home.placeholder')}
                   className="w-full px-8 py-8 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none text-base"
                   rows={2}

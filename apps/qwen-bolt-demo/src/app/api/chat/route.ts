@@ -61,8 +61,9 @@ function readDirectoryRecursive(dirPath: string, basePath: string): Record<strin
       const fullPath = path.join(dirPath, entry.name);
       const relativePath = path.relative(basePath, fullPath);
       
-      // Skip node_modules, .git, etc.
+      // Skip node_modules, .git, lock files, etc.
       if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '.cache') continue;
+      if (entry.name === 'package-lock.json' || entry.name === 'yarn.lock' || entry.name === 'pnpm-lock.yaml') continue;
       
       if (entry.isDirectory()) {
         Object.assign(result, readDirectoryRecursive(fullPath, basePath));

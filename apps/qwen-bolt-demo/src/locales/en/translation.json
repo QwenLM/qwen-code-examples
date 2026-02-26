@@ -89,6 +89,22 @@
       "counter": "🧮 Counter App"
     }
   },
+  "preview": {
+    "title": "Preview",
+    "fullscreen": "Fullscreen",
+    "enterFullscreen": "Enter Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "generating": "Generating...",
+    "generatingDesc": "AI is generating your project, preview will appear automatically",
+    "preparingHtml": "Preparing HTML Preview",
+    "preparingHtmlDesc": "Static HTML files will be previewed directly",
+    "noPreview": "No Preview Available",
+    "startingServer": "Starting development server...",
+    "runCommand": "Run npm install && npm run dev in the terminal to start your app",
+    "noFiles": "No files yet",
+    "noFilesDesc": "Start chatting with AI to generate your project",
+    "serverError": "Error starting preview:"
+  },
   "chatHistory": {
     "title": "Chat History",
     "startNew": "Start new chat",
@@ -96,6 +112,10 @@
     "noMatching": "No matching chats",
     "noRecent": "No recent chats",
     "recentChats": "Recent Chats",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "past7Days": "Past 7 Days",
+    "older": "Older",
     "untitled": "Untitled",
     "deleteConfirm": "Delete?",
     "confirmDelete": "Confirm delete",

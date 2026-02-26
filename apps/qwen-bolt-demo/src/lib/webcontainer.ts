@@ -1,4 +1,5 @@
 import { WebContainer } from '@webcontainer/api';
+import logger from '@/lib/logger';
 
 // Boot timeout in milliseconds (2 minutes)
 const BOOT_TIMEOUT_MS = 120_000;
@@ -23,7 +24,7 @@ export async function getWebContainer(): Promise<WebContainer> {
     console.warn('[WebContainer] App is not cross-origin isolated. WebContainer may not boot.');
   }
 
-  console.log('[WebContainer] Booting...');
+  logger.debug('[WebContainer] Booting...');
 
   // Use a cancellable timeout to avoid unhandled rejection when boot succeeds after timeout fires
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -59,7 +60,7 @@ export async function getWebContainer(): Promise<WebContainer> {
 
   try {
     globalContext._webcontainerInstance = await globalContext._webcontainerBootPromise;
-    console.log('[WebContainer] Booted successfully.');
+    logger.debug('[WebContainer] Booted successfully.');
     return globalContext._webcontainerInstance;
   } catch (error) {
     console.warn('[WebContainer] Boot failed:', error);

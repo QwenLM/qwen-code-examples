@@ -4,6 +4,7 @@ import { Paperclip, File, Folder, X } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@/components/ui/Tooltip';
+import logger from '@/lib/logger';
 
 export interface AttachedFile {
   id: string;
@@ -96,13 +97,13 @@ export function FileAttachment({ attachedFiles, onFilesAttached, onFileRemoved }
                  ...f,
                  path: f.path.slice(commonPrefix.length), // Remove the "MyApp/" prefix
              }));
-             console.log(`[FileAttachment] Flattened project structure by removing prefix: ${commonPrefix}`);
+             logger.debug(`[FileAttachment] Flattened project structure by removing prefix: ${commonPrefix}`);
          }
     }
     
     if (validFiles.length > 0) {
       onFilesAttached(validFiles);
-      console.log('[FileAttachment] Uploaded files:', validFiles.map(f => ({ 
+      logger.debug('[FileAttachment] Uploaded files:', validFiles.map(f => ({ 
         name: f.name, 
         path: f.path, 
         size: f.size,

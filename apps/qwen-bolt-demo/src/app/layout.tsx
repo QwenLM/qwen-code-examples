@@ -8,8 +8,12 @@ import { ProjectProvider } from "@/contexts/ProjectContext";
 import { I18nProvider } from "@/components/I18nProvider";
 
 export const metadata: Metadata = {
-  title: "Qwen Bolt - AI Website Builder",
-  description: "Build stunning apps & websites by chatting with AI",
+  title: "Qwen Coder - AI Code Studio",
+  description: "Create stunning apps & websites by chatting with AI",
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/icon-512.svg',
+  },
 };
 
 export default function RootLayout({

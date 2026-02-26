@@ -23,12 +23,21 @@ export async function downloadProjectAsZip(files: Record<string, string>, projec
   URL.revokeObjectURL(url);
 }
 
+// Lock files generated on the host platform may contain platform-specific optional
+// dependencies (e.g. @rollup/rollup-darwin-arm64) that break npm install inside
+// WebContainer (Linux). Filter them out before mounting.
+const EXCLUDED_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
+
 export function convertFilesToTree(files: Record<string, string>): FileSystemTree {
   const tree: FileSystemTree = {};
 
   for (const [path, content] of Object.entries(files)) {
     // 1. Clean the path (remove leading slash)
     let cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // 2. Skip lock files to avoid platform-specific dependency issues in WebContainer
+    const fileName = cleanPath.split('/').pop() || '';
+    if (EXCLUDED_FILES.has(fileName)) continue;
     
     // 2. Split path into segments
     const parts = cleanPath.split('/');
