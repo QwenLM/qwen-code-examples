@@ -3,6 +3,7 @@ import { app } from "electron";
 import { join } from "path";
 import { homedir } from "os";
 import { getCurrentApiConfig } from "./claude-settings.js";
+import { isDev } from "../util.js";
 
 // Get Qwen Code CLI path for packaged app
 export function getQwenCodePath(): string | undefined {
@@ -57,17 +58,15 @@ export function getEnhancedEnv(): Record<string, string> {
     console.warn('[getEnhancedEnv] No API config found, Qwen SDK may fail');
   }
 
-  // In packaged Electron app, process.execPath points to Electron executable.
-  // ELECTRON_RUN_AS_NODE=1 makes Electron run as a Node.js runtime,
-  // allowing it to execute JavaScript files like cli.js
-  const electronEnv: Record<string, string> = {};
-  if (app.isPackaged) {
-    electronEnv.ELECTRON_RUN_AS_NODE = '1';
+  // ELECTRON_RUN_AS_NODE=1 prevents multiple Dock icons on macOS by running Electron as Node.js
+  if (process.platform === 'darwin') {
+    const script = join(app.getAppPath(), isDev() ? './src/electron/libs/hide-dock.js' : '../dist-electron/libs/hide-dock.js');
+    filteredEnv.NODE_OPTIONS = `${filteredEnv.NODE_OPTIONS || ''} --require "${script}"`.trim();
   }
 
   return {
     ...filteredEnv,
-    ...electronEnv,
+    ELECTRON_RUN_AS_NODE: '1',
     PATH: newPath,
   };
 }
