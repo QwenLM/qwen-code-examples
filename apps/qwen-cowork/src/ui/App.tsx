@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PermissionResult } from "@qwen-code/sdk";
 import { useIPC } from "./hooks/useIPC";
 import { useMessageWindow } from "./hooks/useMessageWindow";
@@ -14,6 +15,7 @@ import MDContent from "./render/markdown";
 const SCROLL_THRESHOLD = 50;
 
 function App() {
+  const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -270,7 +272,7 @@ function App() {
               <div className="flex items-center justify-center py-4 mb-4">
                 <div className="flex items-center gap-2 text-xs text-muted">
                   <div className="h-px w-12 bg-ink-900/10" />
-                  <span>Beginning of conversation</span>
+                  <span>{t('beginningOfConversation')}</span>
                   <div className="h-px w-12 bg-ink-900/10" />
                 </div>
               </div>
@@ -283,15 +285,15 @@ function App() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  <span>Loading...</span>
+                  <span>{t('loading')}</span>
                 </div>
               </div>
             )}
 
             {visibleMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="text-lg font-medium text-ink-700">No messages yet</div>
-                <p className="mt-2 text-sm text-muted">Start a conversation with agent cowork</p>
+                <div className="text-lg font-medium text-ink-700">{t('noMessagesYet')}</div>
+                <p className="mt-2 text-sm text-muted">{t('startConversation')}</p>
               </div>
             ) : (
               visibleMessages.map((item, idx) => (
@@ -344,7 +346,7 @@ function App() {
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 5v14M5 12l7 7 7-7" />
             </svg>
-            <span>New messages</span>
+            <span>{t('newMessages')}</span>
           </button>
         )}
       </main>
