@@ -1,0 +1,23 @@
+{
+  "skill_name": "codescope-qa",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想了解一下这个 Linux 内核代码库里面，哪些函数被调用次数最多？它们分布在哪些子系统里？",
+      "expected_output": "Should return a ranked list of high fan-in functions (like dev_err_probe, seq_printf, complete, free_irq) with their file paths, and group or comment on which subsystems they belong to.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Can you find out which modules in the kernel are most tightly coupled? I want to understand the dependency structure between subsystems.",
+      "expected_output": "Should use module_coupling or a cross-module CALLS query to identify pairs of modules with the most inter-module call edges, potentially with a layer_discovery to show which are infrastructure vs consumer.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我查一下 schedule 这个函数最近被哪些 commit 修改过，以及它和哪些函数经常一起被修改",
+      "expected_output": "Should use change_attribution for schedule (with file_path kernel/sched/core.c) and co_change to find functions commonly modified alongside it. Should check backfill state first.",
+      "files": []
+    }
+  ]
+}
