@@ -1,0 +1,1456 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qwen Code 介绍手册</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #18181b; /* Zinc 900 */
+        --primary-foreground: #fafafa;
+        --secondary: #f4f4f5; /* Zinc 100 */
+        --secondary-foreground: #18181b;
+        --muted: #f4f4f5;
+        --muted-foreground: #71717a; /* Zinc 500 */
+        --accent: #f4f4f5;
+        --accent-foreground: #18181b;
+        --destructive: #ef4444;
+        --border: #e4e4e7; /* Zinc 200 */
+        --input: #e4e4e7;
+        --ring: #18181b;
+        --radius: 0.75rem;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg:
+          0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --blue-600: #2563eb;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background-color: #e4e4e7; /* Darker background for contrast */
+        color: var(--primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 40px;
+      }
+
+      .brochure-container {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .page {
+        width: 148.5mm;
+        height: 210mm;
+        background: white;
+        padding: 32px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px; /* Print pages usually square, but slight radius looks good on screen */
+      }
+
+      /* Typography */
+      h1,
+      h2,
+      h3,
+      h4 {
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+      }
+
+      p {
+        line-height: 1.6;
+        color: var(--muted-foreground);
+        font-size: 13px;
+      }
+
+      /* Page 1 Styles */
+      .header {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 64px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        color: var(--primary);
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-family: 'Outfit', sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        letter-spacing: 0.02em;
+      }
+
+      .hero-image-container {
+        margin: 0 -10px 24px -10px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .intro {
+        font-size: 14px;
+        color: var(--primary);
+        margin-bottom: 32px;
+        font-weight: 500;
+        text-align: center;
+        padding: 0 10px;
+      }
+
+      .grid-features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: auto;
+        margin-bottom: 16px;
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+
+      .feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+
+      .feature-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+      }
+
+      .feature-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .feature-desc {
+        font-size: 11px;
+        color: var(--muted-foreground);
+        line-height: 1.4;
+      }
+
+      /* Page 2 Styles */
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .section-number {
+        font-size: 48px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--border); /* Subtle number */
+        opacity: 0.5;
+      }
+
+      .section-name {
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .steps-container {
+        margin-bottom: 24px;
+      }
+
+      .step {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .step:last-child {
+        margin-bottom: 0;
+      }
+
+      .step-marker {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .step-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+      }
+
+      .step-line {
+        width: 2px;
+        flex-grow: 1;
+        background: var(--border);
+        margin-top: 4px;
+        margin-bottom: -24px; /* Pull next item up */
+      }
+
+      .step:last-child .step-line {
+        display: none;
+      }
+
+      .step-content {
+        flex: 1;
+      }
+
+      .step-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+      }
+
+      .step-title {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .code-snippet {
+        background: #1e1e1e; /* VS Code dark */
+        color: #d4d4d4;
+        border-radius: 6px;
+        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        font-size: 11px;
+        position: relative;
+        border: 1px solid #333;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .window-dots {
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #27272a;
+        border-bottom: 1px solid #333;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.red { background: #ef4444; }
+      .dot.yellow { background: #eab308; }
+      .dot.green { background: #22c55e; }
+
+      .code-content {
+        padding: 12px;
+      }
+
+      /* .code-snippet::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 10px;
+        background: #333;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        opacity: 0.5;
+      } */
+
+      .auth-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .auth-box {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px;
+        background: #fafafa;
+      }
+
+      .auth-head {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .badge {
+        font-size: 9px;
+        padding: 1px 6px;
+        border-radius: 99px;
+        background: #dbeafe;
+        color: #2563eb;
+        font-weight: 600;
+      }
+
+      .example-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        background: var(--secondary);
+        padding: 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+      }
+
+      .cmd-line {
+        font-family: monospace;
+        font-size: 11px;
+        color: var(--primary);
+        display: flex;
+        gap: 8px;
+      }
+
+      .cmd-prompt {
+        color: var(--muted-foreground);
+        user-select: none;
+      }
+
+      .footer-link {
+        text-align: center;
+        margin-top: auto;
+        font-size: 11px;
+        color: var(--muted-foreground);
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .qr-placeholder {
+        width: 40px;
+        height: 40px;
+        background: var(--border);
+        border-radius: 4px;
+      }
+
+      /* Utility */
+      .text-blue {
+        color: var(--blue-600);
+      }
+      .mt-4 {
+        margin-top: 1rem;
+      }
+
+      @media print {
+        @page {
+          size: A5 portrait;
+          margin: 0;
+        }
+        body {
+          background: none;
+          padding: 0;
+        }
+        .brochure-container {
+          gap: 0;
+        }
+        .page {
+          box-shadow: none;
+          margin: 0;
+          page-break-after: always;
+          border: none;
+          border-radius: 0;
+        }
+        .export-panel, .config-btn, .config-overlay {
+          display: none !important;
+        }
+      }
+
+      .export-panel {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(200%);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 24px;
+        border-radius: 20px;
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 1000;
+        min-width: 360px;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .export-panel.open {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .config-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        border: none;
+        box-shadow: var(--shadow-lg);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 900;
+        transition: all 0.2s;
+      }
+
+      .config-btn:hover {
+        transform: scale(1.05);
+      }
+      
+      .config-btn:active {
+        transform: scale(0.95);
+      }
+
+      .config-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      
+      .config-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .panel-section-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted-foreground);
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .color-option {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.2s;
+      }
+      
+      .color-option:hover {
+        transform: scale(1.1);
+        z-index: 10;
+      }
+
+      .color-option.active::after {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border: 2px solid var(--primary);
+        border-radius: 10px;
+      }
+
+      /* Background Presets */
+      .bg-white { background: white; }
+      
+      /* Noise Texture - Common for modern feel */
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.4;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        pointer-events: none;
+        mix-blend-mode: overlay;
+        display: none; /* Hidden by default */
+      }
+      
+      /* Activate noise for specific backgrounds if desired, or global */
+      .bg-noise::before {
+        display: block;
+      }
+
+      .bg-dot { 
+        background-color: #ffffff;
+        background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      
+      .bg-grid {
+        background-color: #ffffff;
+        background-image: linear-gradient(#f4f4f5 1px, transparent 1px), linear-gradient(90deg, #f4f4f5 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      /* Modern Gradients */
+      .bg-gradient-blue {
+        background: radial-gradient(circle at 0% 0%, #eff6ff 0%, transparent 50%), radial-gradient(circle at 100% 100%, #eff6ff 0%, transparent 50%), #fff;
+      }
+      .bg-gradient-warm {
+        background: radial-gradient(circle at 100% 0%, #fff7ed 0%, transparent 50%), radial-gradient(circle at 0% 100%, #fff7ed 0%, transparent 50%), #fff;
+      }
+      .bg-gradient-purple {
+        background: radial-gradient(circle at 50% 50%, #faf5ff 0%, #fff 100%);
+      }
+      .bg-gradient-mint {
+        background: linear-gradient(120deg, #f0fdf4 0%, #fff 60%);
+      }
+      .bg-gradient-rose {
+        background: linear-gradient(-120deg, #fff1f2 0%, #fff 60%);
+      }
+      
+      /* Poster Style 1: Fluid Aurora */
+      .bg-shapes {
+        background-color: #ffffff;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .bg-shapes::after {
+        content: '';
+        position: absolute;
+        top: -20%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.05) 40%, transparent 70%);
+        filter: blur(60px);
+        border-radius: 50%;
+        z-index: 0;
+        animation: float 10s ease-in-out infinite alternate;
+      }
+
+      .bg-shapes .page-bg-element-1 {
+        position: absolute;
+        bottom: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, rgba(16, 185, 129, 0.05) 40%, transparent 70%);
+        filter: blur(50px);
+        border-radius: 50%;
+        z-index: 0;
+      }
+
+      /* Poster Style 2: Swiss Geometry */
+      .bg-geo-1 {
+        background-color: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      /* Big Circle Top Right */
+      .bg-geo-1::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        border: 20px solid #f4f4f5;
+        border-radius: 50%;
+        opacity: 0.6;
+        z-index: 0;
+      }
+
+      /* Solid Circle Bottom Left */
+      .bg-geo-1 .page-bg-element-1 {
+        position: absolute;
+        bottom: 80px;
+        left: -40px;
+        width: 160px;
+        height: 160px;
+        background: #f4f4f5;
+        border-radius: 50%;
+        z-index: 0;
+      }
+      
+      /* Rectangular Accent */
+      .bg-geo-1 .page-bg-element-2 {
+        position: absolute;
+        bottom: 40px;
+        left: 80px;
+        width: 40px;
+        height: 40px;
+        background: #e4e4e7;
+        transform: rotate(45deg);
+        z-index: 0;
+      }
+
+      /* Poster Style 3: Tech Grid */
+      .bg-geo-2 {
+         background-color: #ffffff;
+         background-image: 
+           linear-gradient(rgba(24, 24, 27, 0.03) 1px, transparent 1px),
+           linear-gradient(90deg, rgba(24, 24, 27, 0.03) 1px, transparent 1px);
+         background-size: 30px 30px;
+         position: relative;
+         overflow: hidden;
+      }
+      
+      /* Gradient Overlay */
+      .bg-geo-2::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 50%, transparent 30%, #fff 100%);
+        z-index: 0;
+      }
+      
+      .bg-geo-2 .page-bg-element-1 {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        width: 120px;
+        height: 120px;
+        border: 1px solid rgba(24, 24, 27, 0.08);
+        z-index: 0;
+      }
+      
+      .bg-geo-2 .page-bg-element-1::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        border-top: 2px solid rgba(24, 24, 27, 0.2);
+        border-right: 2px solid rgba(24, 24, 27, 0.2);
+      }
+      .bg-geo-2 .page-bg-element-1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: -10px;
+        width: 20px;
+        height: 20px;
+        border-bottom: 2px solid rgba(24, 24, 27, 0.2);
+        border-left: 2px solid rgba(24, 24, 27, 0.2);
+      }
+      
+      .bg-stripes {
+        background-color: #ffffff;
+        background-image: repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 10px,
+          #fafafa 10px,
+          #fafafa 20px
+        );
+      }
+
+      .bg-mesh {
+        background-color: #ffffff;
+        background-image: 
+          radial-gradient(circle at 0% 0%, rgba(224, 242, 254, 0.5) 0%, transparent 40%),
+          radial-gradient(circle at 100% 0%, rgba(243, 232, 255, 0.5) 0%, transparent 40%),
+          radial-gradient(circle at 100% 100%, rgba(255, 241, 242, 0.5) 0%, transparent 40%),
+          radial-gradient(circle at 0% 100%, rgba(240, 253, 244, 0.5) 0%, transparent 40%);
+      }
+
+
+      .panel-header {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0.8;
+      }
+
+      .export-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 13px;
+      }
+
+      .page-label {
+        font-weight: 500;
+        color: var(--muted-foreground);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-shot {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--primary);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 60px;
+        text-align: center;
+      }
+
+      .btn-shot:hover {
+        background: var(--secondary);
+        border-color: var(--primary);
+      }
+
+      .btn-shot:active {
+        transform: scale(0.96);
+      }
+
+      .btn-shot.loading {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .meta-row {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .meta-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border: 1px solid var(--border);
+        color: var(--primary);
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .meta-badge.dark {
+        background: #18181b;
+        color: white;
+        border-color: #18181b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brochure-container">
+      <!-- PAGE 1: BRANDING & FEATURES -->
+      <div class="page bg-white" id="page1">
+        <!-- Background Elements -->
+        <div class="page-bg-element-1"></div>
+        <div class="page-bg-element-2"></div>
+
+        <div class="header">
+          <h1 class="logo-text">Qwen Code</h1>
+          <div class="subtitle">
+            阿里通义实验室专为 Qwen3-Coder 优化的开源终端 AI 智能体
+          </div>
+        </div>
+
+        <div class="meta-row" style="margin-bottom: 20px">
+          <!-- Downloads -->
+          <div class="meta-badge">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>376k/月</span>
+          </div>
+
+          <!-- License -->
+          <div class="meta-badge">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              ></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Apache 2.0</span>
+          </div>
+
+          <!-- GitHub Stars -->
+          <div class="meta-badge">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              stroke="none"
+            >
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+              ></path>
+            </svg>
+            <span>20k+</span>
+          </div>
+        </div>
+
+        <div class="hero-image-container" style="margin-top: 0; margin-left: 8px; margin-right: 8px; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.06);">
+          <img
+            src="https://img.alicdn.com/imgextra/i4/O1CN01W5znoD1xYu83G9pHM_!!6000000006456-2-tps-1696-952.png"
+            alt="Qwen Code UI"
+            class="hero-image"
+            crossorigin="anonymous"
+            style="width: 100%; height: auto; display: block; margin-top: -16px;"
+          />
+        </div>
+
+        <div class="grid-features">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="6" y1="3" x2="6" y2="15" />
+                <circle cx="18" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M18 9a9 9 0 0 1-9 9" />
+              </svg>
+            </div>
+            <div class="feature-title">开源 & 免费</div>
+            <div class="feature-desc">
+              框架与模型全开源。使用 OAuth 登录每日享 1,000 次免费请求。
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            </div>
+            <div class="feature-title">终端优先</div>
+            <div class="feature-desc">
+              专为命令行而生，同时支持 VS Code，Zed，JetBrains 等编辑器集成。
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <rect x="9" y="9" width="6" height="6" />
+                <path d="M9 1v3" />
+                <path d="M15 1v3" />
+                <path d="M9 20v3" />
+                <path d="M15 20v3" />
+                <path d="M20 9h3" />
+                <path d="M20 15h3" />
+                <path d="M1 9h3" />
+                <path d="M1 15h3" />
+              </svg>
+            </div>
+            <div class="feature-title">智能工作流</div>
+            <div class="feature-desc">
+              内置 SubAgents，Skills 等高级功能，提供完整的 Agentic 编码体验。
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 22v-5" />
+                <path d="M9 8V2" />
+                <path d="M15 8V2" />
+                <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
+              </svg>
+            </div>
+            <div class="feature-title">开放协议</div>
+            <div class="feature-desc">
+              支持标准 OpenAI/Anthropic/Gemini 接口配置，灵活适配多种模型服务。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 2: GETTING STARTED -->
+      <div class="page bg-white" id="page2">
+        <!-- Background Elements -->
+        <div class="page-bg-element-1"></div>
+        <div class="page-bg-element-2"></div>
+
+        <div class="section-header">
+          <div class="section-number">01</div>
+          <div class="section-name">快速开始</div>
+        </div>
+
+        <div class="steps-container">
+          <div class="step">
+            <div class="step-marker">
+              <div class="step-dot">1</div>
+              <div class="step-line"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-head">
+                <div class="step-title">安装 CLI</div>
+                <span class="badge">NPM</span>
+              </div>
+              <div class="code-snippet">
+                <div class="window-dots">
+                  <div class="dot red"></div>
+                  <div class="dot yellow"></div>
+                  <div class="dot green"></div>
+                </div>
+                <div class="code-content">
+                  <span style="color: #c678dd">npm</span> install -g @qwen-code/qwen-code
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-marker">
+              <div class="step-dot">2</div>
+              <div class="step-line"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-head">
+                <div class="step-title">启动与认证</div>
+              </div>
+              <p style="margin-bottom: 8px">
+                在项目目录运行 <code>qwen</code>，首次将引导认证。
+              </p>
+
+              <div class="auth-options" style="grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                <div class="auth-box" style="padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #fafafa 0%, #f4f4f5 100%); border: 1px solid #e4e4e7;">
+                  <div style="font-size: 11px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Qwen OAuth
+                  </div>
+                  <div style="font-size: 9px; color: #71717a; font-weight: 500;">免费 · 1,000次/天</div>
+                </div>
+                
+                <div class="auth-box" style="padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #fafafa 0%, #f4f4f5 100%); border: 1px solid #e4e4e7;">
+                  <div style="font-size: 11px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    阿里云百炼
+                  </div>
+                  <div style="font-size: 9px; color: #71717a; font-weight: 500;">付费 · 6,000次/5h</div>
+                </div>
+                
+                <div class="auth-box" style="padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #fafafa 0%, #f4f4f5 100%); border: 1px solid #e4e4e7;">
+                  <div style="font-size: 11px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    API 密钥
+                  </div>
+                  <div style="font-size: 9px; color: #71717a; font-weight: 500;">自定义密钥</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top: 2px">
+          <div class="section-number">02</div>
+          <div class="section-name">三大使用场景</div>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 8px;
+          "
+        >
+          <!-- 场景 1 -->
+          <div
+            class="feature-card"
+            style="flex-direction: row; align-items: flex-start; gap: 12px; padding: 8px 12px;"
+          >
+            <div
+              class="feature-icon"
+              style="
+                background: #e0f2fe;
+                color: #0284c7;
+                width: 36px;
+                height: 36px;
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+              </svg>
+            </div>
+            <div>
+              <div class="feature-title" style="margin-bottom: 2px">
+                氛围编程
+              </div>
+              <div class="feature-desc">
+                交互式终端体验。像聊天一样写代码，让灵感即刻落地，享受编程乐趣。
+              </div>
+            </div>
+          </div>
+
+          <!-- 场景 2 -->
+          <div
+            class="feature-card"
+            style="flex-direction: row; align-items: flex-start; gap: 12px; padding: 8px 12px;"
+          >
+            <div
+              class="feature-icon"
+              style="
+                background: #f3e8ff;
+                color: #9333ea;
+                width: 36px;
+                height: 36px;
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            </div>
+            <div>
+              <div class="feature-title" style="margin-bottom: 2px">
+                严肃编程
+              </div>
+              <div class="feature-desc">
+                深度集成开发流。支持 VS Code/Zed 等插件与 Headless 模式，无缝融入工作流。
+              </div>
+            </div>
+          </div>
+
+          <!-- 场景 3 -->
+          <div
+            class="feature-card"
+            style="flex-direction: row; align-items: flex-start; gap: 12px; padding: 8px 12px;"
+          >
+            <div
+              class="feature-icon"
+              style="
+                background: #dcfce7;
+                color: #16a34a;
+                width: 36px;
+                height: 36px;
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="18" height="10" x="3" y="11" rx="2" />
+                <circle cx="12" cy="5" r="2" />
+                <path d="M12 7v4" />
+                <line x1="8" y1="16" x2="8" y2="16" />
+                <line x1="16" y1="16" x2="16" y2="16" />
+              </svg>
+            </div>
+            <div>
+              <div class="feature-title" style="margin-bottom: 2px">
+                个人助手
+              </div>
+              <div class="feature-desc">
+                全能技术伙伴。解释概念、查找文档、排查疑难杂症，随时为你答疑解惑。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 联系我们 -->
+        <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <!-- 左侧：二维码 -->
+            <div>
+              <div style="display: flex; gap: 28px; align-items: flex-start;">
+                <div style="text-align: center;">
+                  <div style="width: 60px; height: 60px; border-radius: 6px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="https://img.alicdn.com/imgextra/i2/O1CN01vg2MIL1epPhqiN3Lj_!!6000000003920-0-tps-1500-1500.jpg" alt="GitHub" style="width: 56px; height: 56px; object-fit: contain;" />
+                  </div>
+                  <div style="font-size: 8px; color: var(--muted-foreground); margin-top: 3px;">GitHub</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="width: 60px; height: 60px; border-radius: 6px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="https://img.alicdn.com/imgextra/i2/O1CN01opbXpB1VZ52WKSALH_!!6000000002666-2-tps-396-396.png" alt="微信群" style="width: 54px; height: 54px; object-fit: contain;" />
+                  </div>
+                  <div style="font-size: 8px; color: var(--muted-foreground); margin-top: 3px;">微信群</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="width: 60px; height: 60px; border-radius: 6px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="https://img.alicdn.com/imgextra/i1/O1CN01OJrFpc1LOPeni0KvL_!!6000000001289-2-tps-376-366.png" alt="钉钉群" style="width: 54px; height: 54px; object-fit: contain;" />
+                  </div>
+                  <div style="font-size: 8px; color: var(--muted-foreground); margin-top: 3px;">钉钉群</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 右侧：Powered by -->
+            <div style="text-align: right; align-self: flex-end;">
+              <div style="font-size: 8px; color: #94a3b8; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 2px; font-style: italic;">Powered by & Generated with</div>
+              <div style="font-size: 8px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; line-height: 1.2; font-style: italic;">
+                Qwen Code
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Config Button -->
+    <button class="config-btn" onclick="toggleConfig()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+    
+    <div class="config-overlay" onclick="toggleConfig()"></div>
+
+    <div class="export-panel">
+      <div class="panel-header">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="4" y1="21" x2="4" y2="14"></line>
+          <line x1="4" y1="10" x2="4" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="3"></line>
+          <line x1="20" y1="21" x2="20" y2="16"></line>
+          <line x1="20" y1="12" x2="20" y2="3"></line>
+          <line x1="1" y1="14" x2="7" y2="14"></line>
+          <line x1="9" y1="8" x2="15" y2="8"></line>
+          <line x1="17" y1="16" x2="23" y2="16"></line>
+        </svg>
+        导出配置 / Export Settings
+      </div>
+
+      <!-- Background Settings -->
+      <div>
+        <div class="panel-section-title">Background Style</div>
+        <div class="color-grid">
+          <div class="color-option bg-white active" onclick="setBackground('bg-white', this)"></div>
+          <div class="color-option bg-dot" onclick="setBackground('bg-dot', this)"></div>
+          <div class="color-option bg-grid" onclick="setBackground('bg-grid', this)"></div>
+          <div class="color-option bg-stripes" onclick="setBackground('bg-stripes', this)"></div>
+          <div class="color-option bg-mesh" onclick="setBackground('bg-mesh', this)"></div>
+          
+          <div class="color-option bg-shapes" onclick="setBackground('bg-shapes', this)"></div>
+          <div class="color-option bg-geo-1" onclick="setBackground('bg-geo-1', this)"></div>
+          <div class="color-option bg-geo-2" onclick="setBackground('bg-geo-2', this)"></div>
+
+          <div class="color-option bg-gradient-blue" onclick="setBackground('bg-gradient-blue', this)"></div>
+          <div class="color-option bg-gradient-warm" onclick="setBackground('bg-gradient-warm', this)"></div>
+          <div class="color-option bg-gradient-purple" onclick="setBackground('bg-gradient-purple', this)"></div>
+          <div class="color-option bg-gradient-mint" onclick="setBackground('bg-gradient-mint', this)"></div>
+          <div class="color-option bg-gradient-rose" onclick="setBackground('bg-gradient-rose', this)"></div>
+        </div>
+      </div>
+      
+      <!-- Effects Settings -->
+      <div>
+        <div class="panel-section-title">Effects</div>
+        <div class="export-row" style="margin-bottom: 8px; justify-content: flex-start;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" onchange="toggleNoise(this)" style="accent-color: var(--primary);">
+            <span>Grain / Noise Texture</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Export Actions -->
+      <div>
+        <div class="panel-section-title">Export Image</div>
+        <div class="export-row" style="margin-bottom: 8px;">
+          <span class="page-label">01 封面页</span>
+          <div class="btn-group">
+            <button class="btn-shot" onclick="takeScreenshot(0, 2)">x2</button>
+            <button class="btn-shot" onclick="takeScreenshot(0, 4)">x4</button>
+            <button class="btn-shot" onclick="takeScreenshot(0, 8)">x8</button>
+          </div>
+        </div>
+
+        <div class="export-row">
+          <span class="page-label">02 内容页</span>
+          <div class="btn-group">
+            <button class="btn-shot" onclick="takeScreenshot(1, 2)">x2</button>
+            <button class="btn-shot" onclick="takeScreenshot(1, 4)">x4</button>
+            <button class="btn-shot" onclick="takeScreenshot(1, 8)">x8</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+      function toggleConfig() {
+        const panel = document.querySelector('.export-panel');
+        const overlay = document.querySelector('.config-overlay');
+        panel.classList.toggle('open');
+        overlay.classList.toggle('open');
+      }
+
+      function setBackground(bgClass, element) {
+        // 1. Apply class to all pages
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => {
+          // Remove all bg- classes
+          page.classList.forEach(cls => {
+            if (cls.startsWith('bg-')) {
+              page.classList.remove(cls);
+            }
+          });
+          // Add new class
+          page.classList.add(bgClass);
+        });
+
+        // 2. Update active state in UI
+        const options = document.querySelectorAll('.color-option');
+        options.forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      function toggleNoise(checkbox) {
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => {
+          if (checkbox.checked) {
+            page.classList.add('bg-noise');
+          } else {
+            page.classList.remove('bg-noise');
+          }
+        });
+      }
+
+      async function takeScreenshot(pageIndex, scale) {
+        const pages = document.querySelectorAll('.page');
+        if (!pages[pageIndex]) return;
+
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = '...';
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        try {
+          const canvas = await html2canvas(pages[pageIndex], {
+            scale: scale,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            onclone: (clonedDoc) => {
+              // 1. 获取原文档的所有 computed 样式中的 CSS 变量
+              const computedStyle = getComputedStyle(document.documentElement);
+              const cssVars = {};
+              // 遍历样式表获取变量名（比遍历 computedStyle 更高效且准确）
+              for (const sheet of document.styleSheets) {
+                try {
+                  for (const rule of sheet.cssRules) {
+                    if (rule.selectorText === ':root') {
+                      for (const prop of rule.style) {
+                        if (prop.startsWith('--')) {
+                          cssVars[prop] = computedStyle
+                            .getPropertyValue(prop)
+                            .trim();
+                        }
+                      }
+                    }
+                  }
+                } catch (e) {}
+              }
+
+              // 2. 将变量显式设置到克隆文档的 root 上
+              const clonedRoot = clonedDoc.documentElement;
+              Object.entries(cssVars).forEach(([key, value]) => {
+                clonedRoot.style.setProperty(key, value);
+              });
+
+              // 3. 移除阴影
+              const clonedPage = clonedDoc.querySelectorAll('.page')[pageIndex];
+              clonedPage.style.boxShadow = 'none';
+
+              // 4. 强制设置颜色，以防万一
+              clonedPage.style.color = cssVars['--primary'] || '#18181b';
+            },
+          });
+
+          const link = document.createElement('a');
+          const timestamp = new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/[:T]/g, '-');
+          link.download = `qwen-code-page${pageIndex + 1}-x${scale}-${timestamp}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch (err) {
+          console.error('Screenshot failed:', err);
+          alert('截图生成失败，请检查控制台日志。');
+        } finally {
+          btn.innerText = originalText;
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
+      }
+    </script>
+  </body>
+</html>
