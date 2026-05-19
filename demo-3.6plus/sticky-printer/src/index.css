@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  textarea {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Think Different</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overflow: hidden; background: #f4e8d1; }
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+    }
+    canvas { display: block; max-width: 100vw; max-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script>
+    // p5.js instance mode sketch
+    const sketch = (p) => {
+      // === CONSTANTS ===
+      const W = 720;
+      const H = 1080;
+      const TYPEWRITER_INTERVAL = 50;  // ms per character
+      const PAUSE_DURATION = 3000;     // 3s pause after typewriter
+      const O_CASCADE_INTERVAL = 300;  // ms between each "o" launch
+      const TRAIL_MAX = 60;            // max trail points per "o"
+
+      // === STATE MACHINE ===
+      const STATE_TYPEWRITER = 0;
+      const STATE_PAUSE = 1;
+      const STATE_CASCADE = 2;
+      const STATE_CLOSING = 3;
+
+      let currentState = STATE_TYPEWRITER;
+      let stateStartTime = 0;
+
+      // State transition helper — ensures timer is reset on every state change
+      function transitionTo(newState) {
+        currentState = newState;
+        stateStartTime = p.millis();
+      }
+
+      // === TEXT DATA ===
+      const FULL_TEXT = [
+        "Here's to the crazy ones. The misfits. The rebels. The troublemakers.",
+        "The round pegs in the square holes. The ones who see things differently.",
+        "They're not fond of rules. And they have no respect for the status quo.",
+        "",
+        "You can quote them, disagree with them, glorify or vilify them.",
+        "About the only thing you can't do is ignore them.",
+        "Because they change things. They push the human race forward.",
+        "",
+        "And while some may see them as the crazy ones, we see genius.",
+        "Because the people who are crazy enough to think they can change the world,",
+        "are the ones who do."
+      ];
+
+      // === DATA STRUCTURES ===
+      let textLines = [];      // [{chars: [{char, x, y, visible, isO, popStart, popDuration}]}]
+      let oBalloons = [];      // [{originX, originY, currentX, currentY, scale, trailPoints, active, oIndex, startTime}]
+      let textOffsetY = 0;     // cumulative upward pull on text block (lerped per frame as oBalloons rise)
+      let phase2Triggered = false; // once set, stays true — prevents stuttering from wobble
+      let textVelocity = 0;  // spring velocity for organic floating motion
+      let textBlockBottom = 0; // actual bottom Y of text block (set during init)
+
+      // === CLOSING TEXT ===
+      let closingAlpha = 0;
+
+      // === PRE-RENDERED ASSETS ===
+      let parchmentBg = null;  // off-screen graphics for parchment texture (avoids per-frame rect calls)
+
+      p.setup = () => {
+        p.pixelDensity(1); // cap pixel density for performance
+        const canvas = p.createCanvas(W, H);
+        canvas.parent('canvas-container');
+        p.textSize(16);
+        p.textAlign(p.LEFT, p.BASELINE);
+
+        // Responsive: scale canvas to fit viewport while maintaining aspect ratio
+        resizeCanvasToFit();
+
+        // Pre-render parchment background once (avoids 48K rect calls per frame)
+        parchmentBg = p.createGraphics(W, H);
+        parchmentBg.background('#f4e8d1');
+        parchmentBg.noStroke();
+        const grainRes = 4;
+        for (let y = 0; y < H; y += grainRes) {
+          for (let x = 0; x < W; x += grainRes) {
+            const n = parchmentBg.noise(x * 0.01, y * 0.01);
+            const brightness = parchmentBg.map(n, 0, 1, -15, 15);
+            if (brightness > 0) {
+              parchmentBg.fill(0, 0, 0, parchmentBg.map(brightness, 0, 15, 0, 8));
+            } else {
+              parchmentBg.fill(255, 255, 255, parchmentBg.map(Math.abs(brightness), 0, 15, 0, 6));
+            }
+            parchmentBg.rect(x, y, grainRes, grainRes);
+          }
+        }
+        // Vignette on pre-rendered background
+        const vignette = parchmentBg.drawingContext.createRadialGradient(
+          W / 2, H / 2, W * 0.3,
+          W / 2, H / 2, W * 0.7
+        );
+        vignette.addColorStop(0, 'rgba(244, 232, 209, 0)');
+        vignette.addColorStop(1, 'rgba(80, 60, 40, 0.15)');
+        parchmentBg.drawingContext.fillStyle = vignette;
+        parchmentBg.drawingContext.fillRect(0, 0, W, H);
+
+        // Wait for font to load before calculating positions
+        const initAfterFontLoad = () => {
+          p.textFont('Special Elite');
+
+          // Calculate text block bounds for off-screen detection
+          const lineHeight = 40;
+          const marginX = 72;
+          const contentWidth = W - 2 * marginX;
+          const textBlockHeight = FULL_TEXT.length * lineHeight;
+          const startY = H - textBlockHeight - 80; // lower third
+          textBlockBottom = startY + (FULL_TEXT.length - 1) * lineHeight; // actual bottom of last text line
+
+          let oIndex = 0;
+          for (let i = 0; i < FULL_TEXT.length; i++) {
+            const line = FULL_TEXT[i];
+            const chars = [];
+            const y = startY + i * lineHeight;
+            // Calculate line width for centering
+            const lineWidth = p.textWidth(line);
+            const lineStartX = marginX + (contentWidth - lineWidth) / 2;
+            for (let j = 0; j < line.length; j++) {
+              const ch = line[j];
+              // Use actual character width for accurate positioning
+              const x = lineStartX + p.textWidth(line.substring(0, j));
+              const isO = (ch === 'o' || ch === 'O');
+              chars.push({
+                char: ch,
+                x: x,
+                y: y,
+                visible: false,
+                isO: isO,
+                popStart: 0,
+                popDuration: 100
+              });
+              if (isO) {
+                oBalloons.push({
+                  originX: x,
+                  originY: y,
+                  currentX: x,
+                  currentY: y,
+                  scale: 1.0,
+                  trailPoints: [],
+                  active: false,
+                  oIndex: oIndex,
+                  startTime: 0,
+                  // Spread targets across the upper half — no clustering
+                  targetX: 60 + p.random(W - 120),
+                  targetY: 60 + p.random(H * 0.4)
+                });
+                oIndex++;
+              }
+            }
+            textLines.push({ chars: chars });
+          }
+
+          transitionTo(STATE_TYPEWRITER);
+        };
+
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(initAfterFontLoad);
+        } else {
+          initAfterFontLoad();
+        }
+      };
+
+      p.draw = () => {
+        // Background
+        drawParchmentBackground();
+
+        // State machine
+        if (currentState === STATE_TYPEWRITER) {
+          handleTypewriter();
+        } else if (currentState === STATE_PAUSE) {
+          handlePause();
+        } else if (currentState === STATE_CASCADE) {
+          handleCascade();
+        } else if (currentState === STATE_CLOSING) {
+          handleClosing();
+        }
+      };
+
+      // === PLACEHOLDER FUNCTIONS (filled in later tasks) ===
+      function drawParchmentBackground() {
+        // Draw pre-rendered parchment (single image call instead of 48K rects)
+        if (parchmentBg) {
+          p.image(parchmentBg, 0, 0);
+        } else {
+          p.background('#f4e8d1');
+        }
+      }
+
+      function handleTypewriter() {
+        // Calculate which character we're on based on elapsed time
+        const elapsed = p.millis() - stateStartTime;
+        const totalChars = textLines.reduce((sum, line) => sum + line.chars.length, 0);
+        const charIndex = Math.floor(elapsed / TYPEWRITER_INTERVAL);
+
+        // Reveal characters up to current index
+        let revealed = 0;
+        for (let i = 0; i < textLines.length; i++) {
+          for (let j = 0; j < textLines[i].chars.length; j++) {
+            const ch = textLines[i].chars[j];
+            if (revealed <= charIndex && !ch.visible) {
+              ch.visible = true;
+              ch.popStart = p.millis(); // trigger pop-in animation
+            }
+            if (ch.visible) revealed++;
+          }
+        }
+
+        // Draw text block
+        drawTextBlock();
+
+        // Transition to pause when all characters are revealed
+        if (charIndex >= totalChars) {
+          transitionTo(STATE_PAUSE);
+        }
+      }
+
+      function handlePause() {
+        // Draw text block (all characters visible)
+        drawTextBlock();
+
+        // Wait for PAUSE_DURATION then transition to cascade
+        const elapsed = p.millis() - stateStartTime;
+        if (elapsed >= PAUSE_DURATION) {
+          transitionTo(STATE_CASCADE);
+        }
+      }
+
+      function handleCascade() {
+        const elapsed = p.millis() - stateStartTime;
+
+        // Activate balloons sequentially at O_CASCADE_INTERVAL intervals
+        for (let i = 0; i < oBalloons.length; i++) {
+          const balloon = oBalloons[i];
+          if (!balloon.active && elapsed >= i * O_CASCADE_INTERVAL) {
+            balloon.active = true;
+            balloon.startTime = p.millis();
+            // Hide the original "o" character in the text block
+            for (let li = 0; li < textLines.length; li++) {
+              for (let ci = 0; ci < textLines[li].chars.length; ci++) {
+                const ch = textLines[li].chars[ci];
+                if (ch.x === balloon.originX && ch.y === balloon.originY) {
+                  ch.visible = false;
+                }
+              }
+            }
+          }
+        }
+
+        // === PHASE DETECTION ===
+        // Phase 1: Balloons rise individually, text stays still
+        // Phase 2: ALL balloons have crossed H/2 → text + balloons rise together off-screen
+        const thresholdY = H / 2;
+        const allActive = oBalloons.every(b => b.active);
+        const allCrossed = allActive && oBalloons.every(b => b.currentY < thresholdY);
+
+        // Persistent flag: once triggered, stays triggered (no stuttering from wobble)
+        if (allCrossed) {
+          phase2Triggered = true;
+        }
+
+        // Update each active balloon's position
+        for (let i = 0; i < oBalloons.length; i++) {
+          const balloon = oBalloons[i];
+          if (!balloon.active) continue;
+
+          const balloonElapsed = p.millis() - balloon.startTime;
+          const riseDuration = 4000; // 4 seconds to reach target
+          let t = Math.min(balloonElapsed / riseDuration, 1.0);
+
+          // Ease out cubic for smooth deceleration
+          const ease = 1 - Math.pow(1 - t, 3);
+
+          // Scale: 1x → 3x
+          balloon.scale = 1.0 + 2.0 * ease;
+
+          // Position: interpolate from origin to target with randomization
+          balloon.currentX = p.lerp(balloon.originX, balloon.targetX, ease);
+          balloon.currentY = p.lerp(balloon.originY, balloon.targetY, ease);
+
+          // Add wobble (sine wave perturbation)
+          balloon.currentX += Math.sin(balloonElapsed * 0.003 + balloon.oIndex) * 15;
+
+          // Update trail points
+          if (balloon.trailPoints.length < TRAIL_MAX) {
+            balloon.trailPoints.push({
+              x: balloon.currentX,
+              y: balloon.currentY,
+              age: 0
+            });
+          } else {
+            balloon.trailPoints.shift();
+            balloon.trailPoints.push({
+              x: balloon.currentX,
+              y: balloon.currentY,
+              age: 0
+            });
+          }
+
+          // Age trail points
+          for (let j = 0; j < balloon.trailPoints.length; j++) {
+            balloon.trailPoints[j].age++;
+          }
+        }
+
+        // Phase 2: spring-based text motion — balloons pull text upward organically
+        if (phase2Triggered) {
+          const maxOffset = -H * 1.2; // push everything well above the viewport
+
+          // Spring force: proportional to distance from target
+          const displacement = maxOffset - textOffsetY;
+          const springForce = displacement * 0.002;
+
+          // Damping: prevents overshoot oscillation
+          const damping = 0.90;
+
+          // Apply spring force to velocity
+          textVelocity += springForce;
+          textVelocity *= damping;
+
+          // Integrate velocity into position
+          textOffsetY += textVelocity;
+
+          // Snap to target when very close
+          if (Math.abs(textOffsetY - maxOffset) < 0.5 && Math.abs(textVelocity) < 0.1) {
+            textOffsetY = maxOffset;
+            textVelocity = 0;
+          }
+        }
+
+        // Draw text block with offset
+        drawTextBlock(textOffsetY);
+
+        // Draw balloon trails and balloons (with text offset in Phase 2)
+        drawOBalloons(textOffsetY);
+
+        // Transition to closing only when ALL content is fully off-screen
+        const textBottomScreenY = textBlockBottom + textOffsetY;
+        const allBalloonsOffScreen = oBalloons.every(b => {
+          const balloonScreenY = b.currentY + textOffsetY;
+          return balloonScreenY < -50;
+        });
+
+        if (textBottomScreenY < -20 && allBalloonsOffScreen) {
+          transitionTo(STATE_CLOSING);
+        }
+      }
+
+      function drawOBalloons(offsetY = 0) {
+        p.noFill();
+
+        for (let i = 0; i < oBalloons.length; i++) {
+          const balloon = oBalloons[i];
+          if (!balloon.active) continue;
+
+          // Skip balloons that have moved off-screen (prevent reappearing)
+          const screenY = balloon.currentY + offsetY;
+          if (screenY < -100) continue;
+
+          // Draw connecting line from balloon origin to current position
+          // Variable thickness based on stretch — thinner when taut, thicker when slack
+          const stretchDist = balloon.originY - balloon.currentY;
+          const lineAlpha = p.map(stretchDist, 0, H * 0.6, 40, 8); // fades as it stretches
+          const lineWeight = p.map(stretchDist, 0, H * 0.6, 1.5, 0.6); // thins as it stretches
+
+          if (stretchDist > 5) {
+            p.strokeWeight(p.constrain(lineWeight, 0.4, 2));
+            p.stroke(44, 36, 22, p.constrain(lineAlpha, 5, 45));
+
+            // Slight curve in the line for organic "string" feel
+            const midX = (balloon.originX + balloon.currentX) / 2;
+            const midY = (balloon.originY + balloon.currentY) / 2 + offsetY;
+            const sagAmount = p.map(stretchDist, 0, H * 0.6, 12, 2); // sags less when stretched
+
+            p.noFill();
+            p.bezier(
+              balloon.originX, balloon.originY + offsetY,
+              midX, midY + sagAmount,
+              midX, midY + sagAmount,
+              balloon.currentX, balloon.currentY + offsetY
+            );
+          }
+
+          // Draw balloon "o" at scaled size
+          p.push();
+          p.translate(balloon.currentX, balloon.currentY + offsetY);
+          p.scale(balloon.scale);
+          p.textSize(16);
+          p.fill('#2c2416');
+          p.noStroke();
+          p.text('o', 0, 0);
+          p.pop();
+        }
+      }
+
+      function handleClosing() {
+        // Fade in "Think Different." at center over 1.5 seconds
+        const elapsed = p.millis() - stateStartTime;
+        const fadeDuration = 1500;
+        closingAlpha = Math.min(elapsed / fadeDuration, 1.0);
+
+        // Draw closing text centered (no balloons — they've all exited the page)
+        p.push();
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(48);
+        p.fill(44, 36, 22, closingAlpha * 255); // #2c2416 with fade alpha
+        p.noStroke();
+        p.text("Think Different.", W / 2, H / 2);
+        p.pop();
+      }
+
+      function drawTextBlock(offsetY = 0) {
+        p.fill('#2c2416');
+        p.noStroke();
+
+        for (let i = 0; i < textLines.length; i++) {
+          const line = textLines[i];
+          for (let j = 0; j < line.chars.length; j++) {
+            const ch = line.chars[j];
+            if (!ch.visible) continue;
+
+            // Pop-in animation for recently revealed chars
+            const elapsed = p.millis() - ch.popStart;
+            let s = 1.0;
+            if (elapsed < ch.popDuration) {
+              const t = elapsed / ch.popDuration;
+              s = 1.0 + 0.2 * (1.0 - t); // 1.2 → 1.0
+            }
+
+            p.push();
+            p.translate(ch.x, ch.y + offsetY);
+            p.scale(s);
+            p.text(ch.char, 0, 0);
+            p.pop();
+          }
+        }
+      }
+
+      // === RESPONSIVE HELPERS ===
+      function resizeCanvasToFit() {
+        const container = document.getElementById('canvas-container');
+        const maxW = container.clientWidth;
+        const maxH = container.clientHeight;
+        const scale = Math.min(maxW / W, maxH / H, 1);
+        const canvas = document.querySelector('#canvas-container canvas');
+        if (canvas) {
+          canvas.style.width = (W * scale) + 'px';
+          canvas.style.height = (H * scale) + 'px';
+        }
+      }
+
+      p.windowResized = () => {
+        resizeCanvasToFit();
+      };
+    };
+
+    // Initialize p5
+    new p5(sketch);
+  </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qwen Code — AI Agent for the Terminal</title>
+  <meta name="description" content="An open-source AI agent that lives in your terminal. Understand codebases, automate work, and ship faster with Qwen3-Coder." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a; --surface: #111111; --surface-2: #1a1a1a;
+      --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.15);
+      --text: #e5e5e5; --text-muted: #737373;
+      --accent: #10b981; --accent-hover: #059669; --accent-glow: rgba(16,185,129,0.15);
+      --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --radius: 12px; --radius-lg: 20px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    code { font-family: var(--font-mono); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 20px 4px var(--accent-glow); } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes terminal-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    .animate { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; background: rgba(10,10,10,0.8); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; }
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { font-size: 14px; color: var(--text-muted); transition: var(--transition); }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { padding: 8px 20px; border-radius: 8px; background: var(--accent); color: #000; font-weight: 500; font-size: 14px; transition: var(--transition); }
+    .nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    .hero { min-height: 100dvh; display: flex; align-items: center; padding: 120px 0 80px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -50%; left: -20%; width: 800px; height: 800px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); opacity: 0.4; pointer-events: none; animation: float 8s ease-in-out infinite; }
+    .hero-content { position: relative; z-index: 2; max-width: 800px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 100px; background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse-glow 2s ease-in-out infinite; }
+    .hero h1 { font-size: clamp(40px, 8vw, 72px); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 24px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent) 0%, #34d399 50%, var(--accent) 100%); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradient-shift 4s ease infinite; }
+    .hero p { font-size: clamp(16px, 2vw, 20px); color: var(--text-muted); max-width: 600px; margin-bottom: 40px; line-height: 1.7; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 10px; font-weight: 500; font-size: 15px; transition: var(--transition); cursor: pointer; border: none; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.3); }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+    .terminal-section { padding: 40px 0 120px; }
+    .terminal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow), 0 0 60px rgba(16,185,129,0.05); max-width: 900px; margin: 0 auto; }
+    .terminal-header { display: flex; align-items: center; gap: 8px; padding: 16px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-title { margin-left: 12px; font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+    .terminal-body { padding: 24px; font-family: var(--font-mono); font-size: 14px; line-height: 1.8; min-height: 280px; }
+    .terminal-line { margin-bottom: 8px; }
+    .terminal-prompt { color: var(--accent); }
+    .terminal-cmd { color: var(--text); }
+    .terminal-output { color: var(--text-muted); }
+    .terminal-cursor-blink { display: inline-block; width: 8px; height: 16px; background: var(--accent); margin-left: 4px; animation: terminal-cursor 1s step-end infinite; vertical-align: middle; }
+
+    .features { padding: 120px 0; }
+    .section-header { text-align: center; margin-bottom: 64px; }
+    .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-weight: 500; margin-bottom: 12px; }
+    .section-title { font-size: clamp(32px, 5vw, 48px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .section-desc { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature-card { padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); transition: var(--transition); }
+    .feature-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+    .feature-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border-radius: 12px; margin-bottom: 20px; color: var(--accent); }
+    .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+
+    .benchmarks { padding: 80px 0; }
+    .bench-table { width: 100%; max-width: 700px; margin: 0 auto; border-collapse: collapse; }
+    .bench-table th, .bench-table td { padding: 16px 24px; text-align: left; border-bottom: 1px solid var(--border); }
+    .bench-table th { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 500; }
+    .bench-table td { font-size: 15px; }
+    .bench-table .highlight { color: var(--accent); font-weight: 600; font-family: var(--font-mono); }
+    .bench-table tr:hover td { background: var(--surface); }
+
+    .install { padding: 120px 0; }
+    .install-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 48px; max-width: 800px; margin: 0 auto; }
+    .install-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .install-tab { padding: 8px 16px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+    .install-tab.active, .install-tab:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+    .install-code { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; font-family: var(--font-mono); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .install-code code { flex: 1; }
+    .copy-btn { padding: 6px 12px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; cursor: pointer; transition: var(--transition); }
+    .copy-btn:hover { color: var(--text); border-color: var(--border-hover); }
+
+    .footer { padding: 48px 0; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
+    .footer-left { font-size: 14px; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 14px; color: var(--text-muted); transition: var(--transition); }
+    .footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .features-grid { grid-template-columns: 1fr; } .nav-links { display: none; } .hero { padding: 100px 0 60px; } .install-card { padding: 32px 24px; } .footer-inner { flex-direction: column; text-align: center; } }
+    @media (max-width: 480px) { .hero-actions { flex-direction: column; } .btn { width: 100%; justify-content: center; } }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        Qwen Code
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/QwenLM/qwen-code" target="_blank" class="nav-cta">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge animate"><span class="dot"></span> Open Source &middot; 1,000 Free Requests/Day</div>
+        <h1 class="animate delay-1">An AI Agent That<br /><span class="gradient">Lives in Your Terminal</span></h1>
+        <p class="animate delay-2">Qwen Code is an open-source terminal AI coding agent optimized for the Qwen3-Coder model. Understand large codebases, automate repetitive work, and ship code faster.</p>
+        <div class="hero-actions animate delay-3">
+          <a href="#install" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Get Started Free
+          </a>
+          <a href="https://github.com/QwenLM/qwen-code" target="_blank" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="terminal-section">
+    <div class="container">
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span>
+          <span class="terminal-title">~/project &mdash; qwen</span>
+        </div>
+        <div class="terminal-body" id="terminal-content">
+          <div class="terminal-line"><span class="terminal-prompt">$ </span><span class="terminal-cmd">qwen</span></div>
+          <div class="terminal-line terminal-output">Qwen Code initialized. How can I help you today?</div>
+          <div class="terminal-line" style="margin-top: 16px;"><span class="terminal-prompt">&gt; </span><span class="terminal-cmd">Explain the architecture of this codebase</span></div>
+          <div class="terminal-line terminal-output" id="typing-output"></div>
+          <span class="terminal-cursor-blink"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Features</div>
+        <h2 class="section-title">Built for Developers Who Ship</h2>
+        <p class="section-desc">Everything you need to understand, automate, and accelerate your development workflow.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
+          <h3>Codebase Understanding</h3>
+          <p>Ask questions about your code structure, dependencies, and architecture. Get instant answers without reading every file.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></div>
+          <h3>Agentic Workflow</h3>
+          <p>Built-in Skills and SubAgents for autonomous code generation, refactoring, and test creation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></div>
+          <h3>1,000 Free Requests/Day</h3>
+          <p>Qwen OAuth gives you 1,000 free daily requests. No credit card, no commitment.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+          <h3>IDE Integrations</h3>
+          <p>Native plugins for VS Code, Zed, and JetBrains. Terminal-first power with IDE convenience.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+          <h3>Headless Mode</h3>
+          <p>Run with <code>-p</code> flag for CI/CD pipelines, scripts, and automation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+          <h3>Open Source & Co-Evolving</h3>
+          <p>Both the CLI and the Qwen3-Coder model are open-source. They ship and evolve together.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="benchmarks" id="benchmarks">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Performance</div>
+        <h2 class="section-title">Terminal-Bench Results</h2>
+        <p class="section-desc">Real numbers on real benchmarks. No marketing fluff.</p>
+      </div>
+      <table class="bench-table">
+        <thead><tr><th>Agent</th><th>Model</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Qwen Code</strong></td><td>Qwen3-Coder-480A35</td><td class="highlight">37.5%</td></tr>
+          <tr><td><strong>Qwen Code</strong></td><td>Qwen3-Coder-30BA3B</td><td class="highlight">31.3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Quick Start</div>
+        <h2 class="section-title">Up and Running in 30 Seconds</h2>
+      </div>
+      <div class="install-card">
+        <div class="install-tabs">
+          <button class="install-tab active" onclick="switchTab('npm')">npm</button>
+          <button class="install-tab" onclick="switchTab('brew')">Homebrew</button>
+          <button class="install-tab" onclick="switchTab('curl')">curl</button>
+        </div>
+        <div id="install-npm" class="install-code"><code>npm install -g @qwen-code/qwen-code@latest</code><button class="copy-btn" onclick="copyCode('install-npm')">Copy</button></div>
+        <div id="install-brew" class="install-code" style="display:none;"><code>brew install qwen-code</code><button class="copy-btn" onclick="copyCode('install-brew')">Copy</button></div>
+        <div id="install-curl" class="install-code" style="display:none;"><code>curl -fsSL https://qwen.ai/install | bash</code><button class="copy-btn" onclick="copyCode('install-curl')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">&copy; 2026 Qwen Code. Open source under Apache 2.0.</div>
+        <div class="footer-links">
+          <a href="https://github.com/QwenLM/qwen-code" target="_blank">GitHub</a>
+          <a href="https://discord.gg/qwen" target="_blank">Discord</a>
+          <a href="https://huggingface.co/Qwen" target="_blank">Hugging Face</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('[id^="install-"]').forEach(c => c.style.display = 'none');
+      event.target.classList.add('active');
+      document.getElementById('install-' + tab).style.display = 'flex';
+    }
+    function copyCode(id) {
+      const code = document.getElementById(id).querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById(id).querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    // Typing animation for terminal
+    const responses = [
+      'Analyzing project structure...',
+      'Found 47 TypeScript files across 3 packages.',
+      '',
+      'Architecture overview:',
+      '  Core engine (src/core) - Event-driven agent loop',
+      '  Tool system (src/tools) - 12 built-in tools',
+      '  Model layer (src/models) - Multi-provider support',
+      '',
+      'The codebase uses a modular architecture with',
+      'clear separation between agent logic and tooling.'
+    ];
+
+    let lineIndex = 0, charIndex = 0;
+    const output = document.getElementById('typing-output');
+
+    function typeLine() {
+      if (lineIndex >= responses.length) { lineIndex = 0; output.textContent = ''; }
+      if (charIndex < responses[lineIndex].length) {
+        output.textContent += responses[lineIndex][charIndex];
+        charIndex++;
+        setTimeout(typeLine, 15 + Math.random() * 25);
+      } else {
+        output.textContent += '\n';
+        lineIndex++;
+        charIndex = 0;
+        setTimeout(typeLine, 200);
+      }
+    }
+    setTimeout(typeLine, 1500);
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card, .section-header, .terminal, .install-card').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
