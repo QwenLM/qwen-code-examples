@@ -1,0 +1,17 @@
+{
+  "name": "computer-use",
+  "version": "0.1.0",
+  "description": "Local desktop and browser automation tools for Qwen Code via computer-use-mcp and Playwright MCP.",
+  "mcpServers": {
+    "computer-use": {
+      "command": "npx",
+      "args": ["-y", "computer-use-mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  },
+  "skills": "skills",
+  "contextFileName": "QWEN.md"
+}

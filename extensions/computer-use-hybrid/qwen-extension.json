@@ -1,0 +1,13 @@
+{
+  "name": "computer-use-hybrid",
+  "version": "0.1.0",
+  "description": "Cross-platform desktop automation via open-computer-use on macOS, Windows, and Linux.",
+  "mcpServers": {
+    "open-computer-use": {
+      "command": "npx",
+      "args": ["-y", "open-computer-use", "mcp"]
+    }
+  },
+  "skills": "skills",
+  "contextFileName": "QWEN.md"
+}
