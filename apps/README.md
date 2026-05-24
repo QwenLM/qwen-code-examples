@@ -150,6 +150,25 @@ A powerful Skill wrapper SDK built on top of `@qwen-code/sdk` that enables intel
 
 ---
 
+### 6. StockVisualization — For Stock Traders
+
+> **Tagline**: *Visualize stock market trends*
+
+An AI-powered stock visualization tool built on RDS Supabase, featuring interactive charts and a paper trading simulator to track real-time portfolio performance.
+
+**Key Features**:
+- Data-Driven Stock Visualization
+- Interactive Portfolio Simulator
+- Real-time Portfolio Performance
+- Supabase-Powered Data Backend
+
+**Use Cases**:
+- Visualize stock market trends
+- Track portfolio performance in real-time
+- Check stock analysis reports
+
+**Tech Stack**: Next.js, RDS Supabase, Build-in Authentication
+
 ## Getting Started
 
 ### Prerequisites
@@ -231,6 +250,7 @@ We welcome contributions! Each app has its own development guidelines in its res
 - [ ] **CoWork** v1.0 - Email assistant
 - [ ] **NoteGenius** v1.0 - Blog writing mode
 - [ ] **PromoStudio** v1.0 - Basic video generation
+- [ ] **StockVisualization** v1.0 - Visualize stock market trends
 
 ## License
 
