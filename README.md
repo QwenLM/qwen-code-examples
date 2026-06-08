@@ -69,6 +69,13 @@ Builds full-stack dashboard applications using React/Next.js + shadcn/ui + Tailw
 - **Location**: `skills/dashboard-builder/`
 - **Key Features**: Professional dark theme, big screen optimization, animated components, configurable data integrations, quick start templates, and additional large-screen components.
 
+### 5. WorldSLA-NPU Optimizer Skill
+
+Guides Qwen Code through gate-based evaluation of whether long-context world-model or video-diffusion attention modules are suitable candidates for Sparse Linear Attention on Ascend NPU.
+
+- **Location**: `skills/world-sla-npu-optimizer/`
+- **Key Features**: Attention interface scanning, torch_npu/CANN preflight, candidate SLA migration planning, exact-all correctness gate, sparse-quality/backward/performance validation gates, and pass/fallback/tuning report generation.
+
 ## Featured Extensions
 
 ### Improve
