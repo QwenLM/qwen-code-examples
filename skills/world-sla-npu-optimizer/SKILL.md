@@ -57,13 +57,13 @@ This Skill does not modify Qwen model internals. It is a reusable Agent Skill cr
    - Do not claim TP/PP/FSDP/HSDP or full Megatron/MindSpeed training unless those exact tests were run.
 
 8. **Decision and report**
-   - Run `python scripts/skill_cli.py assess --preflight preflight.json --scan scan.json --metrics metrics.json --out gate_decision.json`.
+   - Run `python scripts/skill_cli.py plan --scan scan.json --out migration_plan.json` to generate a candidate plan. Then run `python scripts/skill_cli.py assess --preflight preflight.json --scan scan.json --plan migration_plan.json --metrics metrics.json --out gate_decision.json`.
    - Run `python scripts/skill_cli.py report ...` to generate a report.
    - The report must include PASS/NEEDS_TUNING/FALLBACK/REJECT decisions and recommendations.
 
 ## Bundled resources
 
-- `scripts/skill_cli.py`: unified CLI for preflight, scan, gate assessment, replay demo, chart generation, and report generation.
+- `scripts/skill_cli.py`: unified CLI for preflight, scan, candidate planning, gate assessment, local demo, and report generation.
 - `references/migration_rules.md`: attention replacement, gate criteria, and backend selection rules.
 - `references/ascend_npu_notes.md`: Ascend NPU preflight and measurement notes.
 - `references/claim_boundaries.md`: what this Skill may and may not claim.
