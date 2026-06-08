@@ -71,10 +71,10 @@ Builds full-stack dashboard applications using React/Next.js + shadcn/ui + Tailw
 
 ### 5. WorldSLA-NPU Optimizer Skill
 
-Guides Qwen Code through migrating and validating long-context world-model or video-diffusion attention modules with Sparse Linear Attention on Ascend NPU.
+Guides Qwen Code through gate-based evaluation of whether long-context world-model or video-diffusion attention modules are suitable candidates for Sparse Linear Attention on Ascend NPU.
 
 - **Location**: `skills/world-sla-npu-optimizer/`
-- **Key Features**: Attention interface scanning, torch_npu/CANN preflight, SLA backend selection guidance, validation gates, and migration report generation.
+- **Key Features**: Attention interface scanning, torch_npu/CANN preflight, candidate SLA adapter planning, exact-all correctness gate, sparse-quality/backward/performance validation gates, and pass/fallback/tuning report generation.
 
 ## Featured Extensions
 
