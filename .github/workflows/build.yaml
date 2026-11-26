@@ -63,9 +63,10 @@ jobs:
 
       - name: Build Desktop
         working-directory: apps/qwen-cowork
-        # No publish config exists in electron-builder.json and no token is
-        # in this job, so electron-builder cannot publish from the matrix.
-        run: bun run ${{ matrix.script }}
+        shell: bash
+        # A tag makes electron-builder publish on tag detection even without
+        # publish configuration. Publishing belongs only to the release job.
+        run: bun run ${{ matrix.script }} -- --publish never
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -81,8 +82,8 @@ jobs:
     needs: [build-desktop]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    # Only the release job holds the write token, and only after a human
-    # approves the deployment in the protected environment.
+    # Only the release job requests a write token. Repository admins must
+    # configure required reviewers on this environment to require approval.
     permissions:
       contents: write
     environment: release
