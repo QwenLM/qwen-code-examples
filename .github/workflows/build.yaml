@@ -32,7 +32,7 @@ jobs:
     # Build jobs run third-party install/build code (dependency lifecycle
     # scripts, electron-builder). They must never see a write-capable token:
     # job-level read-only permissions and no GH_TOKEN/GITHUB_TOKEN env.
-    # Publishing is disabled below; the release job owns publishing.
+    # The release job owns publishing.
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
