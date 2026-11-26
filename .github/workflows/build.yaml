@@ -51,13 +51,15 @@ jobs:
         working-directory: apps/qwen-cowork
         # Frozen lockfile pins every transitive version; --ignore-scripts
         # keeps dependency lifecycle scripts (and the project postinstall)
-        # from running install-time code in CI. The native rebuild that the
-        # postinstall used to do runs as an explicit, audited step below.
+        # from running install-time code in CI. Only Electron's own binary
+        # installation is restored from the lockfile-installed package below.
         run: bun install --frozen-lockfile --ignore-scripts
 
-      - name: Rebuild better-sqlite3 for Electron
+      - name: Install Electron binary and rebuild native modules
         working-directory: apps/qwen-cowork
-        run: bunx electron-rebuild -f -w better-sqlite3
+        # @electron/rebuild is a transitive dependency of electron-builder;
+        # its lockfile-installed bin also triggers Electron's own install.js.
+        run: bun run electron-rebuild -f -w better-sqlite3
 
       - name: Build Desktop
         working-directory: apps/qwen-cowork
